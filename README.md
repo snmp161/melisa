@@ -1,37 +1,19 @@
 # melisai
 
-> [!WARNING]
-> **🧊 Project frozen for an indefinite period.** Development is paused — no new features, fixes, or releases are planned for the foreseeable future. The existing code remains available as-is.
->
-> **🧊 Проект заморожен на неизвестный срок.** Разработка приостановлена — новые функции, исправления и релизы в обозримом будущем не планируются. Существующий код остаётся доступным как есть.
-
 ![melisai terminal demo](doc/images/melisai_quick_profile.gif)
 
-**Your server is slow. You SSH in. Now what?**
+melisai is a point-in-time Linux performance diagnostic tool. It collects data through 8 procfs/sysfs collectors, a registry of 67 BCC tools, and one native eBPF collector, then produces a JSON report with raw measurements, threshold-based anomalies, a heuristic health score, and suggested tuning actions. It works as a standalone CLI or as an MCP server for interactive analysis.
 
-melisai answers that question in 10 seconds. Single Go binary — no agents, no daemons, no config files. It runs 67 BCC/eBPF tools + 8 procfs collectors, detects 37 anomalies, computes a health score, and tells you exactly what sysctl to change. Works standalone or as an MCP server for Claude/Cursor to diagnose servers interactively.
-
-[![Go 1.23+](https://img.shields.io/badge/Go-1.23%2B-00ADD8?logo=go)](https://go.dev)
+[![Go 1.25+](https://img.shields.io/badge/Go-1.25%2B-00ADD8?logo=go)](https://go.dev)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![BCC Coverage](https://img.shields.io/badge/BCC_tools-67%2F80-green)](https://github.com/iovisor/bcc)
-[![Tests](https://img.shields.io/badge/tests-458_passing-brightgreen)]()
 [![Schema](https://img.shields.io/badge/schema-v1.1.0-blue)]()
 
+```bash
+sudo melisai collect --profile quick -o report.json
 ```
-$ sudo melisai collect --profile quick -o report.json
 
-  melisai v0.4.1 | profile=quick | duration=10s
-
-  Tier 1 (procfs)  ████████████████████████████████████████ 8/8   2.1s
-  Tier 2 (BCC)     ████████████████████████████████████████ 4/4  10.3s
-
-  Health Score:  68 / 100  ⚠️
-  Anomalies:     cpu_utilization CRITICAL (98.7%)
-                 load_average WARNING (3.2x CPUs)
-  Recommendations: 2
-
-  Report saved to report.json
-```
+The command writes a JSON report to `report.json` (`-o -` selects stdout). Total runtime depends on the selected profile, host, and available collection tools.
 
 ---
 
@@ -39,84 +21,25 @@ $ sudo melisai collect --profile quick -o report.json
 
 | Feature | What it does |
 |---------|-------------|
-| **Health Score** | Single 0-100 number. Green/yellow/red. AI agents use it to decide next steps |
-| **37 Anomaly Rules** | Rate-based detection (not cumulative counters). Catches problems happening *right now* |
-| **35 Recommendations** | Copy-paste `sysctl` commands with evidence. Each tagged as "fix" or "optimization" |
-| **67 BCC Tools** | ~84% of Brendan Gregg's BPF toolkit. Histograms, events, stack traces |
-| **GPU/PCIe Topology** | Detects NVIDIA GPUs, maps PCI→NUMA, flags cross-NUMA GPU-NIC pairs (30-50% DMA penalty) |
-| **Page Reclaim Tracking** | Direct reclaim rate, compaction stalls, THP splits — the invisible latency killers |
-| **NUMA Analysis** | Per-node miss ratio, distance matrix, CPU mapping. Catches 30-50% latency penalties |
-| **Network Deep Dive** | Conntrack, softnet, IRQ distribution, accept queue depth, 30+ TCP/UDP sysctls |
-| **MCP Server** | Claude Desktop / Cursor connect over stdio. Interactive server diagnostics |
-| **Before/After Diff** | Compare two reports. See what improved, what regressed |
-| **Observer Effect Mitigation** | Two-phase collection: baselines first, then BCC tools. PID exclusion |
-| **22 Chapter Documentation** | Book-level guide (EN + RU) covering CPU, memory, disk, network, GPU, NUMA, THP |
-| **Shareable Reports** | `melisai share` → one short URL with the diagnosis, rendered client-side. No agents to install for the reader |
-
----
-
-## Real-World Diagnosis
-
-One command. 60 seconds. Here's what melisai found on a production Docker host (8 CPUs, 32 GB RAM, HDD RAID):
-
-```
-Health Score: 46 / 100
-
-Anomalies (6):
-  [CRITICAL] tcp_retransmits          134/sec
-  [WARNING]  disk_utilization          80.5%
-  [WARNING]  cpu_psi_pressure          17.6%
-  [WARNING]  io_psi_pressure           12.8%
-  [WARNING]  disk_avg_latency          12.1ms
-  [WARNING]  tcp_close_wait            1 socket
-```
-
-**What melisai found that manual debugging wouldn't:**
-
-The root cause chain — HDD latency (p99=49ms) caused page reclaim pressure (`PruneCalled=105`), which made the kernel prune TCP buffers, triggering 31 retransmits/sec, and cascading into 226K dropped packets on the WireGuard tunnel. Four separate symptoms, one root cause.
-
-| What | Manual | melisai |
-|------|--------|---------|
-| Find the cascade: HDD → reclaim → tcp prune → retransmits → VPN drops | Requires years of kernel experience | Automatic — 37 rules check it all |
-| Know to check `PruneCalled` in `/proc/net/netstat` | You have to know it exists | Collected and evaluated automatically |
-| Identify the process eating 245% CPU + 8.6 GB RAM | `top` shows it, but not in context | Correlated with health score and anomalies |
-| Collect 17,330 stack traces for flame graph | `perf record` + manual setup | Included in one `--profile deep` run |
-| Get copy-paste sysctl fixes with evidence | Google + trial and error | 7 recommendations with exact commands |
-
-**The diagnosis:** server outgrew its hardware. SSD would fix 80% of the problems. The other 20% is workload sizing.
-
----
-
-## Who Is This For?
-
-- **SRE / DevOps** — "server is slow, find out why" in one command
-- **ML Engineers** — GPU-NIC NUMA topology, PCIe bandwidth diagnostics
-- **Database Admins** — THP splits, page reclaim, dirty writeback, NUMA miss ratio
-- **Platform Teams** — container CPU throttling, cgroup memory pressure, K8s NUMA topology
-- **AI Agents** — structured JSON + MCP protocol = autonomous server diagnostics
-
----
-
-## Why Not prometheus/netdata/datadog?
-
-| | melisai | Monitoring agents |
-|---|---------|-------------------|
-| **Deployment** | Single binary, run once | Daemon + config + server |
-| **Time to answer** | 10 seconds | Set up dashboards, wait for data |
-| **BPF tools** | 67 tools in one run | Separate setup per tool |
-| **Recommendations** | Exact sysctl commands | Raw metrics only |
-| **AI-native** | MCP server, structured JSON, AI prompt | Requires adapter/integration |
-| **GPU topology** | Cross-NUMA detection | Not typically covered |
-| **Cost** | Free, Apache 2.0 | Free to $$$ |
-
-melisai is not a replacement for monitoring — it's a **diagnostic tool** you run when something is already wrong (or to validate that everything is right).
+| **Health Score** | Heuristic 0–100 summary derived from USE metrics and detected anomalies |
+| **37 Anomaly Rules** | Static thresholds over current values and, where applicable, two-point rate measurements |
+| **Recommendations** | Suggested tuning commands with evidence, tagged as "fix" or "optimization"; review before applying |
+| **67 BCC Tool Specifications** | Histogram, event, and stack-trace parsers; actual availability depends on the host |
+| **GPU/PCIe Topology** | NVIDIA GPU metrics, PCI→NUMA mapping, and cross-NUMA GPU-NIC pair detection |
+| **Page Reclaim Tracking** | Direct reclaim rates, compaction stalls, and THP split counters |
+| **NUMA Analysis** | Per-node miss ratio, distance matrix, and CPU mapping |
+| **Network Data** | Conntrack, softnet, IRQ distribution, accept queues, and TCP/UDP sysctls |
+| **MCP Server** | MCP access over stdio for interactive diagnostics |
+| **Before/After Diff** | Comparison of health scores, USE metrics, anomalies, and histograms |
+| **Observer Effect Mitigation** | Tier 1 baselines run before BCC/eBPF tools; PID exclusion and overhead measurement |
+| **Documentation** | 22 chapters in English and Russian covering Linux performance and melisai internals |
 
 ---
 
 ## Quick Start
 
 ```bash
-# Build (requires Go 1.23+, cross-compile from macOS/Linux)
+# Build (requires Go 1.25+, cross-compile from macOS/Linux)
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o melisai ./cmd/melisai/
 
 # Deploy and run
@@ -127,38 +50,11 @@ ssh root@server "melisai collect --profile quick -o /tmp/report.json"
 ssh root@server "melisai install"
 ```
 
-No config files. No YAML. No environment variables.
+The CLI does not require a configuration file. Tier 2 tools are optional and can be installed with `melisai install`.
 
 ---
 
-## Share a Report
-
-`melisai collect` produces a 30–100 KB JSON file. `melisai share` turns it into one short URL you paste into Slack, an incident channel, or a Jira ticket — the recipient gets the full diagnosis rendered in their browser, no melisai install required.
-
-```bash
-sudo melisai collect --profile quick -o report.json
-melisai share report.json
-# → https://melisai.dev/r/uJOzZUjb
-```
-
-Live demo (real run on a loaded server, health = 2/100): <https://melisai.dev/r/uJOzZUjb>
-
-[![melisai share demo](doc/images/share-demo-hero.png)](https://melisai.dev/r/uJOzZUjb)
-
-Two flavours of URL, picked automatically:
-
-| Mode | URL shape | When it's used |
-|------|-----------|----------------|
-| **Short link** | `https://melisai.dev/r/Xa9bC3kp` | Default. CLI POSTs the gzipped summary to `melisai.dev/api/r`; backend stores it in SQLite and returns the code |
-| **Fragment fallback** | `https://melisai.dev/r#H4sIAAAA...` | Auto-triggered when the upload fails (offline, airgapped, 5xx). The whole report rides in the URL fragment — nothing reaches a server. Force with `--offline` |
-
-The viewer page is static HTML+JS that decodes the payload client-side (`atob` + `DecompressionStream`); the backend is just a key→bytes store with no auth and rate-limited writes. See [doc/en/16-sharing.md](doc/en/16-sharing.md) for the wire format and self-hosting notes.
-
-**Privacy:** the payload carries hostname, kernel version, anomaly evidence and recommendation text. Treat the URL like the JSON report itself.
-
----
-
-## MCP Server — AI-Powered Diagnostics
+## MCP Server
 
 melisai includes a built-in [Model Context Protocol](https://modelcontextprotocol.io/) server. AI agents connect over stdio and interactively diagnose system performance.
 
@@ -177,12 +73,12 @@ melisai includes a built-in [Model Context Protocol](https://modelcontextprotoco
 
 ### MCP Tools
 
-| Tool | What it does | Time |
-|------|-------------|------|
-| `get_health` | Quick 0-100 score + anomalies. Tier 1 only | ~2s |
-| `collect_metrics` | Full profile with BCC/eBPF tools. Args: `profile`, `focus`, `pid` | 10-60s |
-| `explain_anomaly` | Root causes + recommendations for any anomaly ID | instant |
-| `list_anomalies` | All 37 anomaly metric IDs with descriptions | instant |
+| Tool | What it does |
+|------|-------------|
+| `get_health` | Tier 1 collection with health score and anomalies |
+| `collect_metrics` | Collection using a selected `profile`, with optional `focus` and `pid` filters |
+| `explain_anomaly` | Possible causes and suggested actions for an anomaly ID |
+| `list_anomalies` | All 37 anomaly metric IDs with descriptions |
 
 ### Typical AI Workflow
 
@@ -191,10 +87,10 @@ Agent                              melisai
   │                                   │
   ├── get_health ──────────────────►  │  "score: 68, cpu_utilization CRITICAL"
   │                                   │
-  ├── explain_anomaly ─────────────►  │  "Root causes, what to check, sysctl fixes..."
+  ├── explain_anomaly ─────────────►  │  "Possible causes, what to check, suggested actions..."
   │   anomaly_id: cpu_utilization     │
   │                                   │
-  ├── collect_metrics ─────────────►  │  Full JSON: 67 BCC tools, histograms,
+  ├── collect_metrics ─────────────►  │  JSON: available BCC tools, histograms,
   │   profile: standard               │  events, stack traces, AI prompt
   │                                   │
   └── (agent analyzes & recommends)   │
@@ -204,33 +100,34 @@ Agent                              melisai
 
 ## How It Works
 
-Three collection tiers with automatic fallback:
+Three collection tiers with availability-based fallback:
 
 ```
 Tier 1: 8 collectors (/proc, /sys, ss, ethtool, nvidia-smi, dmesg)
-        Network deep diagnostics, page reclaim & THP tracking,
-        NUMA topology analysis, GPU/PCIe cross-NUMA detection
-        Always works. No root needed.
+        Network diagnostics, page reclaim & THP tracking,
+        NUMA topology analysis, GPU/PCIe cross-NUMA detection.
+        Core procfs/sysfs reads usually need no root. External utilities,
+        process data, logs, and some metrics depend on permissions.
 
 Tier 2: 67 BCC tools — runqlat, biolatency, tcpconnlat, etc.
         Root + bcc-tools required. `melisai install` handles setup.
 
 Tier 3: Native eBPF (cilium/ebpf) — tcpretrans kprobe
-        Root + kernel ≥ 5.8 + BTF. Zero external dependencies.
+        Root + kernel ≥ 5.8 + BTF. Does not require BCC for this collector.
 ```
 
-Collection runs in **two phases** to eliminate observer effect:
-1. **Phase 1** — Tier 1 collectors capture clean baselines
-2. **Phase 2** — BCC/eBPF tools run without contaminating baselines
+Collection runs in **two phases** to reduce observer effect on Tier 1 baselines:
+1. **Phase 1** — Tier 1 collectors capture baselines before BCC/eBPF startup
+2. **Phase 2** — available BCC/eBPF tools run in parallel; their own activity can still affect the system
 
 ### Report Structure
 
 | Section | Content |
 |---------|---------|
-| `summary.health_score` | Weighted 0-100 score (CPU 1.5x, Memory 1.5x, Disk 1.0x, Network 1.0x) |
-| `summary.anomalies[]` | Detected issues with severity, metric, value, threshold |
+| `summary.health_score` | Heuristic weighted 0-100 score (CPU 1.5x, Memory 1.5x, Disk 1.0x, Network 1.0x) |
+| `summary.anomalies[]` | Threshold hits with severity, metric, value, threshold |
 | `summary.resources` | USE metrics per resource (utilization, saturation, errors) |
-| `summary.recommendations[]` | Exact commands with `type` (fix/optimization) and evidence |
+| `summary.recommendations[]` | Suggested commands with `type` (fix/optimization) and evidence; review before applying |
 | `categories.*` | Raw data: histograms, events, stack traces per subsystem |
 | `ai_context.prompt` | Dynamic prompt with system context and 27 anti-patterns |
 
@@ -238,11 +135,13 @@ Collection runs in **two phases** to eliminate observer effect:
 
 ## Collection Profiles
 
-| Profile | Duration | What runs | Best for |
-|---------|----------|-----------|----------|
-| **quick** | 10s | Tier 1 + biolatency, tcpretrans, opensnoop, oomkill | Health checks, CI gates |
-| **standard** | 30s | All Tier 1 + all 67 BCC tools | Regular diagnostics |
-| **deep** | 60s | Everything + memleak, biostacks, wakeuptime, biotop | Root cause analysis |
+| Profile | Target collection interval | What runs | Purpose |
+|---------|---------------------------|-----------|---------|
+| **quick** | 10s | Selected Tier 1 collectors + biolatency, tcpretrans, opensnoop, oomkill | Short health snapshot |
+| **standard** | 30s | All available Tier 1 and registered BCC tools | Broader diagnostic report |
+| **deep** | 60s | Standard set plus memleak, biostacks, wakeuptime, biotop and other extras | Additional stack and event data |
+
+The intervals control collection, not the total command runtime. Tool startup, external utilities, and shutdown can make a run longer.
 
 ```bash
 # Quick health check
@@ -268,7 +167,7 @@ melisai diff before.json after.json -o diff.json
 
 ## Anomaly Detection — 37 Rules
 
-All rate-based rules use two-point sampling (delta over interval). No false positives from cumulative counters on long-uptime systems.
+Rate-based rules use two-point sampling (delta over interval) to distinguish current activity from cumulative counters. A threshold hit reports a configured condition; it does not by itself establish a root cause.
 
 | Metric | Warning | Critical | Source |
 |--------|---------|----------|--------|
@@ -299,7 +198,7 @@ All rate-based rules use two-point sampling (delta over interval). No false posi
 
 ## BCC Tools — 67 Tools
 
-~84% coverage of Brendan Gregg's [BPF observability tools](https://www.brendangregg.com/BPF/bcc-tracing-tools.png).
+The registry contains 67 tool specifications based on Brendan Gregg's [BPF observability tools](https://www.brendangregg.com/BPF/bcc-tracing-tools.png). Installed tools, kernel compatibility, and output formats vary by host.
 
 | Subsystem | Count | Tools |
 |-----------|-------|-------|
@@ -323,7 +222,7 @@ jq '.summary.health_score' report.json
 # All anomalies
 jq '.summary.anomalies[]' report.json
 
-# Copy-paste recommendations
+# Review suggested recommendations
 jq '.summary.recommendations[] | {type, title, commands}' report.json
 
 # Network sysctls
@@ -346,7 +245,7 @@ jq '.categories.cpu[].histograms[]? | {name, p50, p99, max}' report.json
 
 ## Documentation — 22 Chapters (EN + RU)
 
-Comprehensive book-level guide covering Linux performance theory and melisai implementation:
+Chapters covering Linux performance concepts and melisai implementation:
 
 | Chapters | Topic |
 |----------|-------|
@@ -370,7 +269,7 @@ All chapters available in English and Russian: [`doc/en/`](doc/en/) | [`doc/ru/`
 cmd/melisai/           CLI (cobra) + MCP subcommand
 internal/
   ├── collector/       8 Tier 1 collectors + BCC adapter + GPU/PCIe
-  ├── executor/        BCC runner, security, 67 parsers, registry
+  ├── executor/        BCC runner, security, output parsers, tool registry
   ├── ebpf/            Native eBPF loader (cilium/ebpf, CO-RE)
   ├── mcp/             MCP server (4 tools, stdio JSON-RPC)
   ├── model/           Types, USE metrics, 37 anomalies, health score
@@ -381,7 +280,7 @@ internal/
   └── installer/       Distro detection, package installation
 ```
 
-**Security**: BCC binaries verified (root-owned, not world-writable, allowed paths only). No shell execution. Symlink resolution. Output capped at 50MB per tool.
+**Security**: BCC binaries are checked for root ownership, allowed paths, symlinks, and world-writable permissions. External tools are executed without a shell. Stdout is capped at 50MB per BCC tool.
 
 ---
 
@@ -389,24 +288,24 @@ internal/
 
 | | Minimum | Notes |
 |---|---|---|
-| **Build** | Go 1.23+ | Cross-compile: `GOOS=linux GOARCH=amd64` |
-| **Tier 1** | Any Linux kernel | No root needed |
-| **Tier 2** | bcc-tools installed | `sudo melisai install` handles this |
-| **Tier 3** | Kernel ≥ 5.8 with BTF | Falls back to Tier 2 automatically |
+| **Build** | Go 1.25+ | Cross-compile: `GOOS=linux GOARCH=amd64` |
+| **Tier 1** | Linux procfs/sysfs | Core reads usually need no root; external utilities and some metrics depend on permissions |
+| **Tier 2** | Root + bcc-tools | `sudo melisai install` handles installation; some distros also need kernel headers |
+| **Tier 3** | Root + kernel ≥ 5.8 with BTF | Falls back to Tier 2 when the native collector is unavailable |
 
-### Tested Distros
+### Integration Test Targets
 
-Ubuntu 24.04 (full validation), Ubuntu 22.04, Debian 12, Fedora 39, CentOS Stream 9
+The Docker-based integration script targets Ubuntu 24.04, Ubuntu 22.04, Debian 12, Fedora 40, and Rocky Linux 9. These scenarios are run manually and are not part of the GitHub Actions workflow.
 
 ---
 
 ## Development
 
 ```bash
-go test ./... -v          # 458 tests
+go test ./... -v          # unit tests
 go test ./... -race       # with race detector
 make lint                 # golangci-lint
-make build                # cross-compile to linux/amd64
+make build                # build the CLI for the host platform
 make test-validation      # Linux + root + stress-ng workload tests
 ```
 
@@ -449,14 +348,14 @@ Please open an issue first to discuss significant changes.
 
 ## Limitations
 
-Being honest about what melisai is **not**:
-
-- **Not a monitoring system.** It's a diagnostic tool — you run it when something is wrong (or to validate that everything is right). For continuous monitoring, use Prometheus/Grafana/Datadog alongside melisai.
-- **No historical trends.** melisai captures a point-in-time snapshot. It can't tell you "retransmits spiked yesterday at 3 PM."
-- **No alerting.** It doesn't run as a daemon or send notifications. Use it on-demand or via cron + MCP.
-- **BCC tools need kernel headers.** Some distros require `linux-headers-$(uname -r)` for Tier 2 tools. Tier 1 always works.
-- **System-level only.** melisai sees *that* a process uses 245% CPU, but not *why* inside the application. For app-level profiling, use pprof/async-profiler on the process melisai identified.
-- **NVIDIA GPUs only.** AMD ROCm support is on the roadmap but not implemented yet.
+- **Not a monitoring system.** melisai produces an on-demand snapshot. For continuous monitoring, use tools such as Prometheus, Grafana, or Datadog alongside it.
+- **No historical trends or alerting.** Reports describe the collection interval; melisai does not store a time series or run as a daemon.
+- **No automatic proof of causality.** Anomalies are independent threshold checks. Correlating them into a root-cause chain requires additional analysis.
+- **Heuristic scoring.** Health Score is a weighted heuristic summary, not a calibrated measure of failure probability or overall system health.
+- **Recommendations require review.** Suggested sysctls and commands may not be appropriate for every workload; validate them before applying to production.
+- **Environment-dependent collection.** BCC tools require root, compatible kernel/BCC versions, and sometimes kernel headers. Tier 1 output can be partial when external utilities, files, or permissions are unavailable.
+- **System-level only.** melisai does not explain application-internal causes. Use application profilers and traces for that analysis.
+- **NVIDIA GPUs only.** AMD ROCm support is not implemented.
 
 ---
 

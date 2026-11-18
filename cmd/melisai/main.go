@@ -222,7 +222,7 @@ Examples:
 	}
 	diffCmd.Flags().StringVarP(&diffOutput, "output", "o", "-", "Output diff file path")
 
-	rootCmd.AddCommand(collectCmd, installCmd, capabilitiesCmd, diffCmd, mcpCmd, shareCmd)
+	rootCmd.AddCommand(collectCmd, installCmd, capabilitiesCmd, diffCmd, mcpCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
