@@ -29,9 +29,15 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y clang llvm linux-tools-generic libbpf-dev
-          # linux-tools-generic installs bpftool under a kernel-versioned path;
-          # expose it on PATH for `make generate`.
-          sudo ln -sf $(ls /usr/lib/linux-tools/*/bpftool | head -n1) /usr/local/bin/bpftool
+          if ! command -v bpftool >/dev/null 2>&1; then
+            shopt -s nullglob
+            candidates=(/usr/lib/linux-tools/*/bpftool)
+            if [[ ${#candidates[@]} -eq 0 ]]; then
+              echo "bpftool not found after installing linux-tools-generic" >&2
+              exit 1
+            fi
+            sudo ln -sf "${candidates[0]}" /usr/local/bin/bpftool
+          fi
 
       - name: Generate embedded BPF objects
         run: make generate
