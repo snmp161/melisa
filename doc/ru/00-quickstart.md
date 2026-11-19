@@ -5,8 +5,10 @@
 ## 1. Установка
 
 ```bash
-# Один команда (Linux amd64/arm64)
-curl -sSL https://melisa.dev/install | sh
+# Linux amd64 (для ARM64 используйте melisa-linux-arm64)
+curl -fSLO https://github.com/snmp161/melisa/releases/latest/download/melisa-linux-amd64
+chmod +x melisa-linux-amd64
+sudo mv melisa-linux-amd64 /usr/local/bin/melisa
 
 # Или сборка из исходников
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o melisa ./cmd/melisa/

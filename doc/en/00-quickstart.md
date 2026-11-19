@@ -5,8 +5,10 @@ From zero to diagnosis in 2 minutes.
 ## 1. Install
 
 ```bash
-# One-liner (Linux amd64/arm64)
-curl -sSL https://melisa.dev/install | sh
+# Linux amd64 (use melisa-linux-arm64 for ARM64)
+curl -fSLO https://github.com/snmp161/melisa/releases/latest/download/melisa-linux-amd64
+chmod +x melisa-linux-amd64
+sudo mv melisa-linux-amd64 /usr/local/bin/melisa
 
 # Or build from source
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o melisa ./cmd/melisa/
