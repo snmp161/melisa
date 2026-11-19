@@ -20,6 +20,9 @@ builds:
 
 archives:
   - format: tar.gz
+    files:
+      - LICENSE
+      - NOTICE
     # this name template makes the archive name compatible with the standard
     # naming used by many package managers
     name_template: >-

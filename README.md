@@ -361,10 +361,13 @@ Please open an issue first to discuss significant changes.
 
 ## License
 
+Copyright 2024-2026 sysdiag contributors
+Copyright 2026 Sergey Ovchinnikov
+
 [Apache License 2.0](LICENSE)
 
 ---
 
-Melisa is derived from [melisai](https://github.com/dmitriimaksimovdevelop/melisai). Original copyright and license notices are preserved in [LICENSE](LICENSE).
+Melisa is derived from [melisai](https://github.com/dmitriimaksimovdevelop/melisai). Original copyright and license notices are preserved in [LICENSE](LICENSE) and [NOTICE](NOTICE).
 
 **Built on the shoulders of [Brendan Gregg's](https://www.brendangregg.com/) BPF ecosystem, the [USE Method](https://www.brendangregg.com/usemethod.html), and [cilium/ebpf](https://github.com/cilium/ebpf).**
