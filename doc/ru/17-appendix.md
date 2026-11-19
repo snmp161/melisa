@@ -20,16 +20,16 @@
 ## Справка CLI
 
 ```
-melisai collect [флаги]
+melisa collect [флаги]
   --profile string    quick|standard|deep (по умолчанию "standard")
   --focus string      Области фокуса: cpu,disk,network,stacks,all
   --output string     Путь к файлу (по умолчанию: stdout)
   --ai-prompt         Включить промпт для AI
   --quiet             Без прогресса
 
-melisai diff <baseline.json> <current.json> [--json]
-melisai capabilities
-sudo melisai install
+melisa diff <baseline.json> <current.json> [--json]
+melisa capabilities
+sudo melisa install
 ```
 
 ## Литература

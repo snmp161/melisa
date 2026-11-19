@@ -15,12 +15,12 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/dmitriimaksimovdevelop/melisai/internal/collector"
-	"github.com/dmitriimaksimovdevelop/melisai/internal/ebpf"
-	"github.com/dmitriimaksimovdevelop/melisai/internal/executor"
-	"github.com/dmitriimaksimovdevelop/melisai/internal/model"
-	"github.com/dmitriimaksimovdevelop/melisai/internal/observer"
-	"github.com/dmitriimaksimovdevelop/melisai/internal/output"
+	"github.com/snmp161/melisa/internal/collector"
+	"github.com/snmp161/melisa/internal/ebpf"
+	"github.com/snmp161/melisa/internal/executor"
+	"github.com/snmp161/melisa/internal/model"
+	"github.com/snmp161/melisa/internal/observer"
+	"github.com/snmp161/melisa/internal/output"
 )
 
 // Orchestrator coordinates all collectors and produces a Report.
@@ -308,7 +308,7 @@ func (o *Orchestrator) buildMetadata(profile ProfileConfig) model.Metadata {
 	hostname, _ := os.Hostname()
 
 	meta := model.Metadata{
-		Tool:          "melisai",
+		Tool:          "melisa",
 		Version:       o.config.Version,
 		SchemaVersion: "1.1.0",
 		Hostname:      hostname,

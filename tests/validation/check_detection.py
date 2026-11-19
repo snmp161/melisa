@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""check_detection.py — validate melisai report detects expected anomalies.
+"""check_detection.py — validate melisa report detects expected anomalies.
 
 Usage: python3 check_detection.py <report.json> <test_name>
 

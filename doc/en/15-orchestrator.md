@@ -2,7 +2,7 @@
 
 ## Overview
 
-The orchestrator (`internal/orchestrator/orchestrator.go`) is the brain of melisai. It runs all collectors in parallel, handles signals, manages timeouts, and assembles the final report.
+The orchestrator (`internal/orchestrator/orchestrator.go`) is the brain of melisa. It runs all collectors in parallel, handles signals, manages timeouts, and assembles the final report.
 
 ## Source Files: orchestrator/ (3 files)
 

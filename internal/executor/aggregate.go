@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/dmitriimaksimovdevelop/melisai/internal/model"
+	"github.com/snmp161/melisa/internal/model"
 )
 
 // AggregateEvents groups and summarizes events for top-N analysis.

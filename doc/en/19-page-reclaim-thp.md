@@ -19,7 +19,7 @@ contiguous blocks. Compaction is expensive, non-deterministic, and happens in
 the allocation path. A 4 KB allocation at 100 ns can become a 2 MB THP allocation
 at 10 ms — a 100,000x latency increase.
 
-melisai measures all three subsystems — reclaim, compaction, THP — using two-point
+melisa measures all three subsystems — reclaim, compaction, THP — using two-point
 sampling of `/proc/vmstat` counters.
 
 ## Memory Watermarks
@@ -81,9 +81,9 @@ direct_ratio      = pgscan_direct / (pgscan_direct + pgscan_kswapd)
 `allocstall_normal` is the most direct indicator — each increment means one
 thread entered the slow path.
 
-## How melisai Measures It
+## How melisa Measures It
 
-melisai reads `/proc/vmstat` twice — start and end of collection — and computes
+melisa reads `/proc/vmstat` twice — start and end of collection — and computes
 per-second rates from the delta:
 
 ```go
@@ -178,7 +178,7 @@ At 100 splits/s, that is 12,700 IPIs/s of pure overhead.
 (PostgreSQL, JVM, Redis) opt in via `madvise(MADV_HUGEPAGE)`; everything else is
 protected from compaction stalls.
 
-melisai reads from:
+melisa reads from:
 ```
 /sys/kernel/mm/transparent_hugepage/enabled   → always/madvise/never
 /sys/kernel/mm/transparent_hugepage/defrag    → always/defer/defer+madvise/madvise/never
@@ -261,7 +261,7 @@ efficiency: `118200/120400 = 98.2%`. THP on madvise — only opted-in apps get h
 Everything is wrong: `direct_reclaim_rate=28410` (critical), direct reclaim
 exceeds kswapd, reclaim efficiency `890K/2841K = 31%`, compaction failure
 rate 81%, and `thp_fault_alloc=420` vs `thp_split_page=8900` means THP is
-net-negative. melisai generates three recommendations:
+net-negative. melisa generates three recommendations:
 
 ```
 1. Direct reclaim active — increase watermark reserves
@@ -333,7 +333,7 @@ echo 1 > /proc/sys/vm/compact_memory          # one-shot manual
 ### Step 5: Make It Persistent
 
 ```bash
-cat >> /etc/sysctl.d/99-melisai-reclaim.conf << 'EOF'
+cat >> /etc/sysctl.d/99-melisa-reclaim.conf << 'EOF'
 vm.watermark_scale_factor=200
 vm.min_free_kbytes=262144
 vm.dirty_expire_centisecs=1000
@@ -371,7 +371,7 @@ sysctl -w vm.nr_hugepages=4096
 ```
 
 Static huge pages are reserved at boot and cannot be used for anything else.
-melisai reports both:
+melisa reports both:
 
 ```json
 { "huge_pages_total": 4096, "huge_pages_free": 1024, "thp_enabled": "madvise" }

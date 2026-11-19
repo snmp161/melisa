@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dmitriimaksimovdevelop/melisai/internal/model"
+	"github.com/snmp161/melisa/internal/model"
 )
 
 // mockCommandRunner fakes external command execution for testing.

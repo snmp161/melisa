@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dmitriimaksimovdevelop/melisai/internal/model"
+	"github.com/snmp161/melisa/internal/model"
 )
 
 // NetworkCollector gathers network metrics from procfs (Tier 1).

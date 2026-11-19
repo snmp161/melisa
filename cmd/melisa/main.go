@@ -1,4 +1,4 @@
-// melisai — comprehensive Linux system performance analyzer.
+// melisa — comprehensive Linux system performance analyzer.
 //
 // Uses BPF/eBPF tools, procfs/sysfs, and standard utilities to produce
 // structured JSON reports optimized for AI-driven diagnostics.
@@ -15,13 +15,13 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/dmitriimaksimovdevelop/melisai/internal/collector"
-	diffpkg "github.com/dmitriimaksimovdevelop/melisai/internal/diff"
-	"github.com/dmitriimaksimovdevelop/melisai/internal/ebpf"
-	"github.com/dmitriimaksimovdevelop/melisai/internal/installer"
-	"github.com/dmitriimaksimovdevelop/melisai/internal/model"
-	"github.com/dmitriimaksimovdevelop/melisai/internal/orchestrator"
-	"github.com/dmitriimaksimovdevelop/melisai/internal/output"
+	"github.com/snmp161/melisa/internal/collector"
+	diffpkg "github.com/snmp161/melisa/internal/diff"
+	"github.com/snmp161/melisa/internal/ebpf"
+	"github.com/snmp161/melisa/internal/installer"
+	"github.com/snmp161/melisa/internal/model"
+	"github.com/snmp161/melisa/internal/orchestrator"
+	"github.com/snmp161/melisa/internal/output"
 )
 
 var (
@@ -30,9 +30,9 @@ var (
 
 func main() {
 	rootCmd := &cobra.Command{
-		Use:   "melisai",
+		Use:   "melisa",
 		Short: "Comprehensive Linux system performance analyzer",
-		Long: `melisai — single Go binary for Linux performance analysis.
+		Long: `melisa — single Go binary for Linux performance analysis.
 
 Collects metrics via BPF/eBPF tools (Brendan Gregg's ecosystem),
 procfs/sysfs, and standard utilities. Produces structured JSON
@@ -102,11 +102,11 @@ Network collector includes deep diagnostics:
 Profiles: quick (10s), standard (30s), deep (60s)
 
 Examples:
-  melisai collect --profile quick -o report.json
-  melisai collect --profile standard --focus network -o net.json
-  melisai collect --profile deep --pid 12345 -o app.json`,
+  melisa collect --profile quick -o report.json
+  melisa collect --profile standard --focus network -o net.json
+  melisa collect --profile deep --pid 12345 -o app.json`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// CPU profiling for performance analysis of melisai itself.
+			// CPU profiling for performance analysis of melisa itself.
 			if collectPprof != "" {
 				f, err := os.Create(collectPprof)
 				if err != nil {
@@ -184,7 +184,7 @@ Examples:
 	collectCmd.Flags().IntVar(&collectMaxEvents, "max-events", 1000, "Max events per collector")
 	collectCmd.Flags().BoolVarP(&collectQuiet, "quiet", "q", false, "Suppress progress output")
 	collectCmd.Flags().BoolVarP(&collectVerbose, "verbose", "v", false, "Enable debug logging")
-	collectCmd.Flags().StringVar(&collectPprof, "pprof", "", "Write CPU profile to file (e.g. melisai_cpu.prof)")
+	collectCmd.Flags().StringVar(&collectPprof, "pprof", "", "Write CPU profile to file (e.g. melisa_cpu.prof)")
 
 	// --- install command ---
 	var installDryRun bool
@@ -213,7 +213,7 @@ Examples:
 
 	diffCmd := &cobra.Command{
 		Use:   "diff <baseline.json> <current.json>",
-		Short: "Compare two melisai reports",
+		Short: "Compare two melisa reports",
 		Long:  "Produce a diff report showing USE deltas, new/resolved anomalies, histogram changes.",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {

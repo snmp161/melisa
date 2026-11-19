@@ -1,4 +1,4 @@
-module github.com/dmitriimaksimovdevelop/melisai
+module github.com/snmp161/melisa
 
 go 1.25.0
 

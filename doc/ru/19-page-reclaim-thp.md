@@ -8,7 +8,7 @@ Linux не держит память без дела. Каждая свобод�
 
 Добавьте Transparent Huge Pages, и всё становится хуже. THP требуют 2 МБ *непрерывной* физической памяти. Когда память фрагментирована, ядро выполняет компакцию страниц для создания непрерывных блоков. Компакция дорогая, недетерминированная и происходит в пути аллокации. Аллокация 4 КБ за 100 нс может превратиться в аллокацию THP 2 МБ за 10 мс -- увеличение задержки в 100 000 раз.
 
-melisai измеряет все три подсистемы -- reclaim, компакцию, THP -- используя двухточечный сэмплинг счётчиков `/proc/vmstat`.
+melisa измеряет все три подсистемы -- reclaim, компакцию, THP -- используя двухточечный сэмплинг счётчиков `/proc/vmstat`.
 
 ## Водяные знаки памяти
 
@@ -65,9 +65,9 @@ direct_ratio      = pgscan_direct / (pgscan_direct + pgscan_kswapd)
 
 `allocstall_normal` -- самый прямой индикатор: каждое увеличение означает, что один поток вошёл в медленный путь.
 
-## Как melisai измеряет это
+## Как melisa измеряет это
 
-melisai читает `/proc/vmstat` дважды -- в начале и конце сбора -- и вычисляет скорости (rate) на основе дельты:
+melisa читает `/proc/vmstat` дважды -- в начале и конце сбора -- и вычисляет скорости (rate) на основе дельты:
 
 ```go
 // internal/collector/memory.go
@@ -146,7 +146,7 @@ Transparent Huge Pages отображают 2 МБ виртуальной пам
 
 **Рекомендация для production**: `defer+madvise`. Приложения, которым нужны огромные страницы (PostgreSQL, JVM, Redis), подписываются через `madvise(MADV_HUGEPAGE)`; всё остальное защищено от задержек компакции.
 
-melisai читает из:
+melisa читает из:
 ```
 /sys/kernel/mm/transparent_hugepage/enabled   -> always/madvise/never
 /sys/kernel/mm/transparent_hugepage/defrag    -> always/defer/defer+madvise/madvise/never
@@ -222,7 +222,7 @@ melisai читает из:
 }
 ```
 
-Всё плохо: `direct_reclaim_rate=28410` (critical), direct reclaim превышает kswapd, эффективность reclaim `890K/2841K = 31%`, доля неудач компакции 81%, и `thp_fault_alloc=420` против `thp_split_page=8900` означает, что THP работает в минус. melisai генерирует три рекомендации:
+Всё плохо: `direct_reclaim_rate=28410` (critical), direct reclaim превышает kswapd, эффективность reclaim `890K/2841K = 31%`, доля неудач компакции 81%, и `thp_fault_alloc=420` против `thp_split_page=8900` означает, что THP работает в минус. melisa генерирует три рекомендации:
 
 ```
 1. Direct reclaim активен -- увеличить резервы watermark
@@ -291,7 +291,7 @@ echo 1 > /proc/sys/vm/compact_memory          # разовая ручная
 ### Шаг 5: Сделать настройки постоянными
 
 ```bash
-cat >> /etc/sysctl.d/99-melisai-reclaim.conf << 'EOF'
+cat >> /etc/sysctl.d/99-melisa-reclaim.conf << 'EOF'
 vm.watermark_scale_factor=200
 vm.min_free_kbytes=262144
 vm.dirty_expire_centisecs=1000
@@ -328,7 +328,7 @@ sysctl -w vm.nr_hugepages=4096
 ```
 
 Статические огромные страницы резервируются при загрузке и не могут использоваться для других целей.
-melisai отображает оба параметра:
+melisa отображает оба параметра:
 
 ```json
 { "huge_pages_total": 4096, "huge_pages_free": 1024, "thp_enabled": "madvise" }

@@ -5,13 +5,13 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/dmitriimaksimovdevelop/melisai/internal/model"
+	"github.com/snmp161/melisa/internal/model"
 )
 
 func TestWriteJSONToFile(t *testing.T) {
 	report := &model.Report{
 		Metadata: model.Metadata{
-			Tool:          "melisai",
+			Tool:          "melisa",
 			Version:       "0.1.0",
 			SchemaVersion: "1.0.0",
 			Hostname:      "test",
@@ -54,7 +54,7 @@ func TestWriteJSONToFile(t *testing.T) {
 func TestWriteJSONStdout(t *testing.T) {
 	report := &model.Report{
 		Metadata: model.Metadata{
-			Tool: "melisai",
+			Tool: "melisa",
 		},
 		Categories: map[string][]model.Result{},
 		Summary: model.Summary{

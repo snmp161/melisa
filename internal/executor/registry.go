@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dmitriimaksimovdevelop/melisai/internal/model"
+	"github.com/snmp161/melisa/internal/model"
 )
 
 // ToolSpec defines how to invoke and parse a specific BCC tool.

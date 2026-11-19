@@ -19,7 +19,7 @@ func NewServer(version string) *Server {
 	mcpVersion = version
 
 	// Create MCP server
-	s := server.NewMCPServer("melisai", version, server.WithLogging())
+	s := server.NewMCPServer("melisa", version, server.WithLogging())
 
 	// Register tools
 	registerTools(s)

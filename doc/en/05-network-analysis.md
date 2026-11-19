@@ -4,7 +4,7 @@
 
 Network problems are notoriously hard to diagnose. Is it the application? The kernel? The network? Packet loss? Buffer exhaustion?
 
-melisai's `NetworkCollector` (`internal/collector/network.go`) collects data from multiple sources: per-interface counters, TCP protocol statistics, socket state summaries, conntrack table stats, softnet per-CPU counters, IRQ distribution, NIC hardware details, and TCP extended stats.
+melisa's `NetworkCollector` (`internal/collector/network.go`) collects data from multiple sources: per-interface counters, TCP protocol statistics, socket state summaries, conntrack table stats, softnet per-CPU counters, IRQ distribution, NIC hardware details, and TCP extended stats.
 
 ## Source File: network.go
 

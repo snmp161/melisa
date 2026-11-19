@@ -50,7 +50,7 @@ Every node exposes `/sys/devices/system/node/nodeN/distance`:
 - `21` = one hop. Ratio: 21/10 = 2.1x local latency.
 - `31` = two hops (4-socket or multi-die EPYC). 3.1x penalty.
 
-## How melisai Detects Problems
+## How melisa Detects Problems
 
 `MemoryCollector.parseNUMAStats()` reads four sources per node:
 
@@ -130,7 +130,7 @@ One NUMA node, distance `[10]`, zero misses. Nothing to fix.
 
 Node 1: **56.8% miss ratio**. A large application runs on CPUs 24-47 but its memory was allocated on node 0. Every access crosses the UPI link. Node 0 has 4 GiB free, node 1 has 102 GiB free -- the app consumed all of node 0's RAM despite running on node 1.
 
-melisai fires: `severity: critical, metric: numa_miss_ratio, value: 56.8`.
+melisa fires: `severity: critical, metric: numa_miss_ratio, value: 56.8`.
 
 ### Imbalanced Memory, Low Miss Ratio
 
@@ -225,11 +225,11 @@ topologyManagerScope: "pod"
 
 For databases on NUMA hardware in K8s, `single-numa-node` + guaranteed QoS class is the minimum. Without it, the kubelet may put a pod's CPUs on node 0 and its hugepages on node 1.
 
-melisai's system-level NUMA stats combined with container metrics (Chapter 7) let you correlate high miss ratios with container CPU assignments.
+melisa's system-level NUMA stats combined with container metrics (Chapter 7) let you correlate high miss ratios with container CPU assignments.
 
 ## NUMA and GPUs
 
-GPUs attach to a specific PCIe root complex on a specific NUMA node. melisai's `GPUDevice` struct captures this:
+GPUs attach to a specific PCIe root complex on a specific NUMA node. melisa's `GPUDevice` struct captures this:
 
 ```go
 type GPUDevice struct {

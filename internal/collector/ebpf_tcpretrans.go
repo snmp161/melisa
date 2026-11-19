@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/cilium/ebpf/perf"
-	"github.com/dmitriimaksimovdevelop/melisai/internal/ebpf"
-	"github.com/dmitriimaksimovdevelop/melisai/internal/model"
+	"github.com/snmp161/melisa/internal/ebpf"
+	"github.com/snmp161/melisa/internal/model"
 )
 
 // TcpretransEvent must match the C struct in internal/ebpf/c/tcpretrans.bpf.c.

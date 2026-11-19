@@ -12,7 +12,7 @@
 ## Прогресс
 
 ```
-melisai v0.2.0 — сбор с профилем standard (30с)
+melisa v0.2.0 — сбор с профилем standard (30с)
   cpu_utilization               ✓ 1.003s
   memory_info                   ✓ 12ms
   disk_io                       ✓ 1.001s

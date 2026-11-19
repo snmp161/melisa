@@ -2,15 +2,15 @@
 
 ## Purpose
 
-This is a quick-reference card for every sysctl and kernel parameter that melisai collects, analyzes, and recommends. Each item includes the parameter, its kernel default, the recommended production value, when to change it, and which melisai metric triggers the recommendation.
+This is a quick-reference card for every sysctl and kernel parameter that melisa collects, analyzes, and recommends. Each item includes the parameter, its kernel default, the recommended production value, when to change it, and which melisa metric triggers the recommendation.
 
-All `sysctl` changes are **temporary** by default. To persist across reboot, write them to `/etc/sysctl.d/99-melisai.conf` and run `sysctl -p /etc/sysctl.d/99-melisai.conf`.
+All `sysctl` changes are **temporary** by default. To persist across reboot, write them to `/etc/sysctl.d/99-melisa.conf` and run `sysctl -p /etc/sysctl.d/99-melisa.conf`.
 
 ---
 
 ## CPU Scheduler
 
-| Parameter | Default | Recommended | When to Change | melisai Metric |
+| Parameter | Default | Recommended | When to Change | melisa Metric |
 |-----------|---------|-------------|----------------|----------------|
 | `kernel.sched_latency_ns` | 24000000 (24ms) | **6000000** (6ms) | Interactive/latency-sensitive workloads; when `runqlat_p99` is high | `runqlat_p99` |
 | `kernel.sched_min_granularity_ns` | 3000000 (3ms) | **750000** (0.75ms) | Same as above; smaller granularity = fairer scheduling on busy CPUs | `runqlat_p99` |
@@ -25,7 +25,7 @@ All `sysctl` changes are **temporary** by default. To persist across reboot, wri
 
 ## Memory Management
 
-| Parameter | Default | Recommended | When to Change | melisai Metric |
+| Parameter | Default | Recommended | When to Change | melisa Metric |
 |-----------|---------|-------------|----------------|----------------|
 | `vm.swappiness` | 60 | **10** (databases), **30** (general prod) | When swap is being used and latency matters; databases should almost never swap | `swap_usage` |
 | `vm.dirty_ratio` | 20 | **10** | When write stalls are observed; high dirty ratio means large writeback bursts | `memory_utilization`, dirty page analysis |
@@ -39,7 +39,7 @@ All `sysctl` changes are **temporary** by default. To persist across reboot, wri
 
 ### Transparent Huge Pages (THP)
 
-| Setting | Default | Recommended | When to Change | melisai Metric |
+| Setting | Default | Recommended | When to Change | melisa Metric |
 |---------|---------|-------------|----------------|----------------|
 | `/sys/kernel/mm/transparent_hugepage/enabled` | `always` | **`madvise`** | Latency-sensitive workloads (databases, JVMs); `always` causes compaction stalls | `memory_utilization`, THP status in report |
 | `/sys/kernel/mm/transparent_hugepage/defrag` | `always` | **`defer+madvise`** | Same as above; `always` triggers synchronous compaction on page faults | `memory_psi_pressure` |
@@ -53,7 +53,7 @@ All `sysctl` changes are **temporary** by default. To persist across reboot, wri
 
 ## Network -- TCP Stack
 
-| Parameter | Default | Recommended | When to Change | melisai Metric |
+| Parameter | Default | Recommended | When to Change | melisa Metric |
 |-----------|---------|-------------|----------------|----------------|
 | `net.ipv4.tcp_congestion_control` | cubic | **bbr** | Always on kernels >= 4.9; BBR handles bufferbloat and lossy networks better | `tcp_retransmits` |
 | `net.core.default_qdisc` | pfifo_fast | **fq** | Required for BBR; Fair Queue provides pacing support | `tcp_retransmits` |
@@ -74,7 +74,7 @@ All `sysctl` changes are **temporary** by default. To persist across reboot, wri
 
 ### TCP Keepalive
 
-| Parameter | Default | Recommended | When to Change | melisai Metric |
+| Parameter | Default | Recommended | When to Change | melisa Metric |
 |-----------|---------|-------------|----------------|----------------|
 | `net.ipv4.tcp_keepalive_time` | 7200 (2h) | **300** (5min) | Detect dead connections faster; important behind load balancers | `tcp_close_wait` |
 | `net.ipv4.tcp_keepalive_intvl` | 75 | **15** | Interval between keepalive probes after initial timeout | `tcp_close_wait` |
@@ -82,7 +82,7 @@ All `sysctl` changes are **temporary** by default. To persist across reboot, wri
 
 ### TCP Memory
 
-| Parameter | Default | Recommended | When to Change | melisai Metric |
+| Parameter | Default | Recommended | When to Change | melisa Metric |
 |-----------|---------|-------------|----------------|----------------|
 | `net.ipv4.tcp_mem` | auto-calculated | **Increase 2-4x** if PruneCalled > 0 | When the kernel starts pruning TCP receive queues due to memory pressure | `tcp_abort_on_memory` |
 
@@ -96,7 +96,7 @@ All `sysctl` changes are **temporary** by default. To persist across reboot, wri
 
 ## Network -- Packet Processing
 
-| Parameter | Default | Recommended | When to Change | melisai Metric |
+| Parameter | Default | Recommended | When to Change | melisa Metric |
 |-----------|---------|-------------|----------------|----------------|
 | `net.core.netdev_budget` | 300 | **600** or higher | When `softnet_time_squeeze` > 0; NAPI poll budget exhausted | `softnet_time_squeeze` |
 | `net.core.netdev_budget_usecs` | 2000 | **8000** | Same as above; allows more time per softirq cycle for packet processing | `softnet_time_squeeze` |
@@ -104,13 +104,13 @@ All `sysctl` changes are **temporary** by default. To persist across reboot, wri
 
 ### Conntrack
 
-| Parameter | Default | Recommended | When to Change | melisai Metric |
+| Parameter | Default | Recommended | When to Change | melisa Metric |
 |-----------|---------|-------------|----------------|----------------|
 | `net.netfilter.nf_conntrack_max` | 65536 | **Double current** if usage > 70% | Connection-tracking table nearing capacity; causes new connections to be dropped | `conntrack_usage_pct` |
 
 ### Neighbor Table (ARP/NDP)
 
-| Parameter | Default | Recommended | When to Change | melisai Metric |
+| Parameter | Default | Recommended | When to Change | melisa Metric |
 |-----------|---------|-------------|----------------|----------------|
 | `net.ipv4.neigh.default.gc_thresh1` | 128 | **2048** | Kubernetes/large-subnet environments with many pods; prevents "neighbour table overflow" | `network_errors_per_sec` |
 | `net.ipv4.neigh.default.gc_thresh2` | 512 | **4096** | Same; soft limit before garbage collection triggers | `network_errors_per_sec` |
@@ -118,7 +118,7 @@ All `sysctl` changes are **temporary** by default. To persist across reboot, wri
 
 ### NIC Hardware Tuning
 
-| Setting | Default | Recommended | When to Change | melisai Metric |
+| Setting | Default | Recommended | When to Change | melisa Metric |
 |---------|---------|-------------|----------------|----------------|
 | `ethtool -G <iface> rx <max>` | vendor default | **Maximum ring size** | When `rx_discards` or ring buffer drops are detected | `nic_rx_discards` |
 | `ethtool -K <iface> tso on gro on` | usually on | **Ensure enabled** | TCP Segmentation Offload and Generic Receive Offload reduce CPU overhead | `cpu_utilization`, `softnet_time_squeeze` |
@@ -127,13 +127,13 @@ All `sysctl` changes are **temporary** by default. To persist across reboot, wri
 - `netdev_budget` controls how many packets a CPU can process in one NAPI poll cycle. Increasing it trades latency fairness for throughput.
 - Conntrack is loaded automatically when iptables/nftables NAT rules exist. On Kubernetes nodes, conntrack table can fill up fast. Monitor with `conntrack -C`.
 - Neighbor table overflows produce `neighbour table overflow` in dmesg and cause intermittent connectivity failures.
-- Verify ring buffer max with `ethtool -g <iface>`. Current values shown in melisai report under `nic_details`.
+- Verify ring buffer max with `ethtool -g <iface>`. Current values shown in melisa report under `nic_details`.
 
 ---
 
 ## Disk I/O
 
-| Setting | Default | Recommended | When to Change | melisai Metric |
+| Setting | Default | Recommended | When to Change | melisa Metric |
 |---------|---------|-------------|----------------|----------------|
 | I/O scheduler (SSD) | varies | **mq-deadline** | SSDs benefit from simple deadline scheduling over complex algorithms | `disk_avg_latency`, `biolatency_p99_ssd` |
 | I/O scheduler (HDD) | varies | **bfq** | Spinning disks benefit from BFQ's fairness and latency guarantees | `disk_avg_latency`, `biolatency_p99_hdd` |
@@ -167,19 +167,19 @@ echo 256 > /sys/block/sda/queue/read_ahead_kb
 
 ## Validation After Tuning
 
-After applying changes, run melisai to verify the impact:
+After applying changes, run melisa to verify the impact:
 
 ```bash
 # Before tuning — capture baseline:
-sudo melisai --duration 30s -o before.json
+sudo melisa --duration 30s -o before.json
 
 # Apply tuning (see one-liner below)
 
 # After tuning — capture comparison:
-sudo melisai --duration 30s -o after.json
+sudo melisa --duration 30s -o after.json
 
 # Compare reports:
-melisai diff before.json after.json
+melisa diff before.json after.json
 ```
 
 Key things to check in the diff:
@@ -195,11 +195,11 @@ The following script applies all recommended production settings. Review and adj
 
 ```bash
 #!/usr/bin/env bash
-# melisai production tuning — apply with: sudo bash tune.sh
-# Generated for melisai v0.4.1
+# melisa production tuning — apply with: sudo bash tune.sh
+# Generated for melisa v0.4.1
 set -euo pipefail
 
-SYSCTL_CONF="/etc/sysctl.d/99-melisai.conf"
+SYSCTL_CONF="/etc/sysctl.d/99-melisa.conf"
 
 cat > "$SYSCTL_CONF" << 'SYSCTL'
 # === CPU Scheduler ===
@@ -285,7 +285,7 @@ done
 echo "[5/5] Set I/O schedulers (mq-deadline for SSD, bfq for HDD)"
 
 echo ""
-echo "Tuning complete. Run 'sudo melisai --duration 30s' to verify."
+echo "Tuning complete. Run 'sudo melisa --duration 30s' to verify."
 echo "NOTE: vm.overcommit_memory=2 is set. Ensure overcommit_ratio is appropriate."
 echo "NOTE: Review conntrack_max and tcp_mem separately — they depend on your workload."
 ```
@@ -296,18 +296,18 @@ The following parameters require workload-specific values and are intentionally 
 
 | Parameter | Why Omitted |
 |-----------|-------------|
-| `net.netfilter.nf_conntrack_max` | Depends on current usage; melisai recommends doubling when >70% |
+| `net.netfilter.nf_conntrack_max` | Depends on current usage; melisa recommends doubling when >70% |
 | `net.ipv4.tcp_mem` | Auto-calculated by kernel based on RAM; only increase if `PruneCalled` > 0 |
 | `vm.overcommit_ratio` | Required when `overcommit_memory=2`; set to 80-95% based on workload |
 | `read_ahead_kb` | Depends on workload pattern (sequential vs. random) |
 
 ---
 
-## Quick Reference: melisai Anomaly to Sysctl Mapping
+## Quick Reference: melisa Anomaly to Sysctl Mapping
 
-When melisai flags an anomaly, this table tells you which parameter to tune first:
+When melisa flags an anomaly, this table tells you which parameter to tune first:
 
-| melisai Anomaly | First Parameter to Check |
+| melisa Anomaly | First Parameter to Check |
 |-----------------|--------------------------|
 | `runqlat_p99` high | `kernel.sched_latency_ns`, `kernel.sched_min_granularity_ns` |
 | `swap_usage` warning | `vm.swappiness`, check for memory leak |
@@ -332,8 +332,8 @@ When melisai flags an anomaly, this table tells you which parameter to tune firs
 
 After applying your tuning, verify these items survive a reboot:
 
-- [ ] `/etc/sysctl.d/99-melisai.conf` exists and contains your settings
-- [ ] `sysctl -p /etc/sysctl.d/99-melisai.conf` runs without errors
+- [ ] `/etc/sysctl.d/99-melisa.conf` exists and contains your settings
+- [ ] `sysctl -p /etc/sysctl.d/99-melisa.conf` runs without errors
 - [ ] THP settings in `/etc/rc.local` or a systemd unit (sysfs is not covered by sysctl)
 - [ ] NIC ring buffer in `/etc/udev/rules.d/` or a networkd/ifup script
 - [ ] I/O scheduler in `/etc/udev/rules.d/60-scheduler.rules`
@@ -341,4 +341,4 @@ After applying your tuning, verify these items survive a reboot:
 
 ---
 
-*This checklist covers all parameters that melisai v0.4.1 collects and analyzes.*
+*This checklist covers all parameters that melisa v0.4.1 collects and analyzes.*

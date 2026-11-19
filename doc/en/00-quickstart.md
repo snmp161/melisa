@@ -6,24 +6,24 @@ From zero to diagnosis in 2 minutes.
 
 ```bash
 # One-liner (Linux amd64/arm64)
-curl -sSL https://melisai.dev/install | sh
+curl -sSL https://melisa.dev/install | sh
 
 # Or build from source
-GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o melisai ./cmd/melisai/
-sudo mv melisai /usr/local/bin/
+GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o melisa ./cmd/melisa/
+sudo mv melisa /usr/local/bin/
 ```
 
 ## 2. Run Your First Scan
 
 ```bash
 # Quick health check (10 seconds, no BCC tools needed)
-sudo melisai collect --profile quick -o report.json
+sudo melisa collect --profile quick -o report.json
 ```
 
 You'll see:
 
 ```
-melisai v0.4.1 | profile=quick | duration=10s
+melisa v0.4.1 | profile=quick | duration=10s
 
 Tier 1 (procfs)  ████████████████████████████████████████ 8/8   2.1s
 Tier 2 (BCC)     ████████████████████████████████████████ 4/4  10.3s
@@ -54,7 +54,7 @@ jq '.summary.recommendations[] | {type, title, commands}' report.json
 Recommendations include copy-paste commands:
 
 ```bash
-# Example: melisai recommends enabling BBR
+# Example: melisa recommends enabling BBR
 sysctl -w net.core.default_qdisc=fq
 sysctl -w net.ipv4.tcp_congestion_control=bbr
 ```
@@ -63,8 +63,8 @@ sysctl -w net.ipv4.tcp_congestion_control=bbr
 
 ```bash
 # Run again and compare
-sudo melisai collect --profile quick -o after.json
-melisai diff report.json after.json
+sudo melisa collect --profile quick -o after.json
+melisa diff report.json after.json
 ```
 
 The diff shows what improved, what regressed, and health score delta.
@@ -73,14 +73,14 @@ The diff shows what improved, what regressed, and health score delta.
 
 | Goal | Command |
 |------|---------|
-| Full analysis with all 67 BCC tools | `sudo melisai collect --profile standard -o report.json` |
-| Deep dive (stacks, memleak, biotop) | `sudo melisai collect --profile deep -o report.json` |
-| Focus on network only | `sudo melisai collect --profile standard --focus network -o net.json` |
-| Profile a specific process | `sudo melisai collect --profile standard --pid 12345 -o app.json` |
-| Profile a container | `sudo melisai collect --profile standard --cgroup /sys/fs/cgroup/system.slice/nginx.service -o cg.json` |
-| Install BCC tools (first time) | `sudo melisai install` |
-| Use with Claude/Cursor (MCP) | `melisai mcp` → [MCP setup guide](13-ai-integration.md) |
-| Check system capabilities | `melisai capabilities` |
+| Full analysis with all 67 BCC tools | `sudo melisa collect --profile standard -o report.json` |
+| Deep dive (stacks, memleak, biotop) | `sudo melisa collect --profile deep -o report.json` |
+| Focus on network only | `sudo melisa collect --profile standard --focus network -o net.json` |
+| Profile a specific process | `sudo melisa collect --profile standard --pid 12345 -o app.json` |
+| Profile a container | `sudo melisa collect --profile standard --cgroup /sys/fs/cgroup/system.slice/nginx.service -o cg.json` |
+| Install BCC tools (first time) | `sudo melisa install` |
+| Use with Claude/Cursor (MCP) | `melisa mcp` → [MCP setup guide](13-ai-integration.md) |
+| Check system capabilities | `melisa capabilities` |
 
 ## Collection Profiles
 
@@ -93,7 +93,7 @@ The diff shows what improved, what regressed, and health score delta.
 ## CLI Reference
 
 ```
-melisai collect   Collect metrics and produce JSON report
+melisa collect   Collect metrics and produce JSON report
   --profile       quick|standard|deep (default: standard)
   --focus         cpu,memory,disk,network,stacks (comma-separated)
   --pid           Filter to specific PID
@@ -104,18 +104,18 @@ melisai collect   Collect metrics and produce JSON report
   --quiet, -q     Suppress progress output
   --verbose, -v   Debug logging
 
-melisai diff      Compare two reports
+melisa diff      Compare two reports
   <baseline.json> <current.json>
   --output, -o    Output diff file
 
-melisai install   Install BCC tools and dependencies
+melisa install   Install BCC tools and dependencies
   --dry-run       Show what would be installed
 
-melisai mcp       Start MCP server (stdio JSON-RPC)
+melisa mcp       Start MCP server (stdio JSON-RPC)
 
-melisai capabilities  Show available tools and kernel features
+melisa capabilities  Show available tools and kernel features
 ```
 
 ---
 
-*Next: [Introduction — How melisai Works](index.md)*
+*Next: [Introduction — How melisa Works](index.md)*

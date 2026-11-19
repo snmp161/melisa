@@ -2,7 +2,7 @@
 
 ## Overview
 
-melisai's anomaly detection engine (`internal/model/anomaly.go`) applies **37 threshold rules** based on Brendan Gregg's recommended values and production best practices. Each rule evaluates a specific metric from collected data and flags it as `warning` or `critical`.
+melisa's anomaly detection engine (`internal/model/anomaly.go`) applies **37 threshold rules** based on Brendan Gregg's recommended values and production best practices. Each rule evaluates a specific metric from collected data and flags it as `warning` or `critical`.
 
 All rate-based rules use two-point sampling (delta/interval) to detect issues happening *right now*, not historical cumulative counters.
 

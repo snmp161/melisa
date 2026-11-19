@@ -5,7 +5,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/dmitriimaksimovdevelop/melisai/internal/mcp"
+	"github.com/snmp161/melisa/internal/mcp"
 	"github.com/spf13/cobra"
 )
 
@@ -15,7 +15,7 @@ var mcpCmd = &cobra.Command{
 	Short: "Start Model Context Protocol (MCP) server",
 	Long: `Starts a JSON-RPC server implementing the Model Context Protocol (MCP).
 This allows AI agents (e.g., Claude Desktop, Cursor) to interactively
-control melisai to diagnose system issues.
+control melisa to diagnose system issues.
 
 Communication happens over standard input/output (stdio).`,
 	RunE: func(cmd *cobra.Command, args []string) error {

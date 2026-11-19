@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dmitriimaksimovdevelop/melisai/internal/model"
+	"github.com/snmp161/melisa/internal/model"
 )
 
 // ProcessCollector gathers per-process metrics for top consumers (Tier 1).
@@ -105,7 +105,7 @@ func (c *ProcessCollector) Collect(ctx context.Context, cfg CollectConfig) (*mod
 			State:   p2.state,
 		}
 
-		// Exclude melisai's own processes from top lists (but keep in totals)
+		// Exclude melisa's own processes from top lists (but keep in totals)
 		if cfg.PIDTracker != nil && cfg.PIDTracker.IsOwnPID(pid) {
 			excludedPIDs = append(excludedPIDs, pid)
 			continue

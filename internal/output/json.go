@@ -6,7 +6,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/dmitriimaksimovdevelop/melisai/internal/model"
+	"github.com/snmp161/melisa/internal/model"
 )
 
 // WriteJSON serializes the report as indented JSON.

@@ -2,7 +2,7 @@
 
 ## Обзор
 
-После обнаружения аномалий melisai предлагает конкретные команды для исправления. Рекомендации генерируются на основе собранных метрик.
+После обнаружения аномалий melisa предлагает конкретные команды для исправления. Рекомендации генерируются на основе собранных метрик.
 
 ## Примеры рекомендаций
 
@@ -40,8 +40,8 @@
 sysctl -w net.ipv4.tcp_congestion_control=bbr
 
 # Постоянно (сохраняется после перезагрузки):
-echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.d/99-melisai.conf
-sysctl -p /etc/sysctl.d/99-melisai.conf
+echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.d/99-melisa.conf
+sysctl -p /etc/sysctl.d/99-melisa.conf
 ```
 
 ---

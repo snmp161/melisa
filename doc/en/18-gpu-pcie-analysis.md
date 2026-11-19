@@ -4,7 +4,7 @@
 
 A GPU computing job that should saturate 400 Gbps of InfiniBand is crawling at 60% throughput. The GPU is fine. The NIC is fine. The problem: the GPU sits on NUMA node 0 and the NIC on NUMA node 1. Every DMA transfer crosses the inter-socket link. 30-50% bandwidth penalty, invisible to application-level metrics.
 
-melisai's `GPUCollector` (`internal/collector/gpu.go`) detects this automatically. It queries NVIDIA GPUs via `nvidia-smi`, maps PCI devices and NICs to NUMA nodes through sysfs, and flags every GPU-NIC pair that crosses a NUMA boundary.
+melisa's `GPUCollector` (`internal/collector/gpu.go`) detects this automatically. It queries NVIDIA GPUs via `nvidia-smi`, maps PCI devices and NICs to NUMA nodes through sysfs, and flags every GPU-NIC pair that crosses a NUMA boundary.
 
 ## Source File: gpu.go
 
@@ -26,7 +26,7 @@ When a GPU on NUMA node 0 sends data via DMA to a NIC on NUMA node 1, the transf
 | Cross-NUMA (2-socket) | 30-50% reduction | +40-80ns per access |
 | Cross-NUMA (4-socket) | Up to 70% reduction | +100-200ns per hop |
 
-The kernel does not warn you. `nvidia-smi` does not warn you. Applications see slow throughput and blame the network. melisai catches it.
+The kernel does not warn you. `nvidia-smi` does not warn you. Applications see slow throughput and blame the network. melisa catches it.
 
 ## Data Structures
 
@@ -226,7 +226,7 @@ mlx5_1  PHB     SYS     SYS      X     0-19            0
 - **SYS** = crosses NUMA boundary (inter-socket link)
 - **NV12** = NVLink (GPU-to-GPU)
 
-GPU0-mlx5_0 is SYS (cross-NUMA) -- exactly what melisai detects.
+GPU0-mlx5_0 is SYS (cross-NUMA) -- exactly what melisa detects.
 
 ### sysfs Direct Inspection
 
@@ -313,7 +313,7 @@ $ lsmod | grep nv_peer_mem                              # loaded?
 $ NCCL_DEBUG=INFO ./my_app 2>&1 | grep -i "gpu direct"  # active?
 ```
 
-melisai's cross-NUMA detection is particularly valuable here: a misconfigured topology turns a zero-copy path into a two-hop DMA with worse performance than regular host-staged transfers.
+melisa's cross-NUMA detection is particularly valuable here: a misconfigured topology turns a zero-copy path into a two-hop DMA with worse performance than regular host-staged transfers.
 
 ## Design Decisions
 

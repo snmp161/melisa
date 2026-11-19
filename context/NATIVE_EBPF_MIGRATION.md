@@ -2,7 +2,7 @@
 
 ## Context
 
-melisai currently runs **67 BCC tools** as external Python processes. Each spawns a Python interpreter (~50MB RAM) + LLVM compiler (~200ms). With 67 tools in parallel this means **67 Python processes, ~3GB peak RAM, and significant observer effect** on the system being diagnosed.
+melisa currently runs **67 BCC tools** as external Python processes. Each spawns a Python interpreter (~50MB RAM) + LLVM compiler (~200ms). With 67 tools in parallel this means **67 Python processes, ~3GB peak RAM, and significant observer effect** on the system being diagnosed.
 
 The goal is to gradually replace BCC tools with **native eBPF programs** loaded directly from Go via cilium/ebpf. This eliminates Python/LLVM overhead, reduces observer effect, and improves startup latency by ~40x per tool.
 
@@ -104,13 +104,13 @@ if tool == "<tool>" {
 ### Step 6: Validate against BCC output
 ```bash
 # Collect with BCC (force Tier 2)
-melisai collect --profile quick -o bcc.json
+melisa collect --profile quick -o bcc.json
 
 # Collect with native eBPF (Tier 3 auto-selected)
-melisai collect --profile quick -o native.json
+melisa collect --profile quick -o native.json
 
 # Compare
-melisai diff bcc.json native.json
+melisa diff bcc.json native.json
 ```
 
 ---
@@ -177,13 +177,13 @@ melisai diff bcc.json native.json
 make generate
 
 # 2. Run with native eBPF
-sudo ./melisai collect --profile quick -o native.json --verbose
+sudo ./melisa collect --profile quick -o native.json --verbose
 
 # 3. Run with BCC only (disable Tier 3)
-sudo ./melisai collect --profile quick -o bcc.json --verbose
+sudo ./melisa collect --profile quick -o bcc.json --verbose
 
 # 4. Compare results
-./melisai diff bcc.json native.json
+./melisa diff bcc.json native.json
 
 # 5. Check specific tool output
 jq '.categories.cpu[] | select(.collector=="runqlat")' native.json
@@ -205,9 +205,9 @@ jobs:
       - name: Compile eBPF
         run: make generate
       - name: Build
-        run: go build -o melisai ./cmd/melisai/
+        run: go build -o melisa ./cmd/melisa/
       - name: Test native eBPF collection
-        run: sudo ./melisai collect --profile quick -o report.json
+        run: sudo ./melisa collect --profile quick -o report.json
       - name: Validate report
         run: python3 tests/validation/check_detection.py report.json
 ```

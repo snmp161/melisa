@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# workloads.sh — workload library for melisai validation tests
+# workloads.sh — workload library for melisa validation tests
 # Sourced by run_validation.sh; each function launches a background workload
 # and populates WORKLOAD_PIDS for cleanup.
 
 set -euo pipefail
 
 WORKLOAD_PIDS=()
-WORKLOAD_TMPDIR="${WORKLOAD_TMPDIR:-/tmp/melisai-validation}"
+WORKLOAD_TMPDIR="${WORKLOAD_TMPDIR:-/tmp/melisa-validation}"
 mkdir -p "$WORKLOAD_TMPDIR"
 
 # cleanup_workload — kill all tracked PIDs, remove tc qdisc, clean temp files
@@ -52,7 +52,7 @@ workload_cpu_burn() {
 workload_memory_pressure() {
     local total_gb
     total_gb=$(free -g | awk '/^Mem:/{print $2}')
-    local target_gb=$(( total_gb - 5 ))  # leave 5G for OS + melisai
+    local target_gb=$(( total_gb - 5 ))  # leave 5G for OS + melisa
 
     # Disable swap so tmpfs pages must stay in RAM
     swapoff -a 2>/dev/null || true

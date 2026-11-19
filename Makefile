@@ -4,7 +4,7 @@
 all: build
 
 build:
-	go build -o melisai cmd/melisai/main.go
+	go build -o melisa ./cmd/melisa
 
 # Compile BPF programs into internal/ebpf/bpf/*.o for embedding via //go:embed.
 # Requires (on the host running this target):
@@ -46,6 +46,6 @@ test-validation:
 	bash tests/validation/run_validation.sh
 
 clean:
-	rm -f melisai
+	rm -f melisa
 	rm -f internal/ebpf/bpf/*.o
 	rm -f internal/ebpf/c/vmlinux.h

@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// OverheadSummary captures melisai's own resource consumption during collection.
+// OverheadSummary captures melisa's own resource consumption during collection.
 type OverheadSummary struct {
 	SelfPID         int   `json:"self_pid"`
 	ChildPIDs       []int `json:"child_pids"`
@@ -36,7 +36,7 @@ type beforeSnapshot struct {
 	children map[int]procSnapshot
 }
 
-// SnapshotBefore records the current resource usage of melisai and its children.
+// SnapshotBefore records the current resource usage of melisa and its children.
 // Call this before starting collectors.
 func (t *PIDTracker) SnapshotBefore() {
 	t.mu.Lock()
@@ -53,7 +53,7 @@ func (t *PIDTracker) SnapshotBefore() {
 }
 
 // SnapshotAfter reads current resource usage and computes the delta
-// since SnapshotBefore. Returns a summary of melisai's overhead.
+// since SnapshotBefore. Returns a summary of melisa's overhead.
 func (t *PIDTracker) SnapshotAfter() OverheadSummary {
 	t.mu.RLock()
 	before := t.before

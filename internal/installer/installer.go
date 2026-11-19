@@ -31,12 +31,12 @@ type PackageSet struct {
 // Run performs the installation.
 func (inst *Installer) Run() error {
 	if runtime.GOOS != "linux" {
-		return fmt.Errorf("melisai install is only supported on Linux (current: %s)", runtime.GOOS)
+		return fmt.Errorf("melisa install is only supported on Linux (current: %s)", runtime.GOOS)
 	}
 
 	// Check root
 	if os.Geteuid() != 0 {
-		return fmt.Errorf("melisai install requires root privileges (use sudo)")
+		return fmt.Errorf("melisa install requires root privileges (use sudo)")
 	}
 
 	// Detect distro
@@ -96,7 +96,7 @@ func (inst *Installer) Run() error {
 		}
 	}
 
-	fmt.Println("\nInstallation complete. Run 'melisai capabilities' to verify.")
+	fmt.Println("\nInstallation complete. Run 'melisa capabilities' to verify.")
 	return nil
 }
 

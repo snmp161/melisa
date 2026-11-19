@@ -15,7 +15,7 @@
 - **Regression**: delta > 5%
 
 ```bash
-melisai diff baseline.json current.json --json
+melisa diff baseline.json current.json --json
 ```
 
 ---

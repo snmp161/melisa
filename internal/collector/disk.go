@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dmitriimaksimovdevelop/melisai/internal/model"
+	"github.com/snmp161/melisa/internal/model"
 )
 
 // partitionRe matches partition suffixes: sda1, nvme0n1p1, etc.

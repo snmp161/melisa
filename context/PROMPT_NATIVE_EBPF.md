@@ -1,14 +1,14 @@
 # AI Prompt: Migrate BCC Tool to Native eBPF
 
-Use this prompt when asking AI to port a specific BCC tool to native eBPF in the melisai project.
+Use this prompt when asking AI to port a specific BCC tool to native eBPF in the melisa project.
 
 ---
 
 ## Prompt Template
 
 ```
-You are working on the melisai project — a Linux system performance analyzer written in Go.
-Repository: /Users/baikal/work/BPF_analaze
+You are working on the melisa project — a Linux system performance analyzer written in Go.
+Repository: /path/to/melisa
 
 ## Task
 Port the BCC tool `<TOOL_NAME>` from Tier 2 (BCC Python) to Tier 3 (native eBPF via cilium/ebpf).
@@ -80,8 +80,8 @@ Port the BCC tool `<TOOL_NAME>` from Tier 2 (BCC Python) to Tier 3 (native eBPF 
 ## Validation
 After implementation, I will validate on a Linux SSH server:
 1. `make generate` — compile BPF
-2. `go build -o melisai ./cmd/melisai/`
-3. `sudo ./melisai collect --profile quick -o native.json -v`
+2. `go build -o melisa ./cmd/melisa/`
+3. `sudo ./melisa collect --profile quick -o native.json -v`
 4. Compare histogram/event output with BCC baseline
 5. Run `go test ./internal/collector/ -run <Tool>`
 ```

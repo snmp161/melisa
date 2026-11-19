@@ -1,13 +1,13 @@
 # All Chapters
 
-Complete table of contents for the melisai documentation. 22 chapters covering Linux performance theory, melisai internals, and production tuning.
+Complete table of contents for the melisa documentation. 22 chapters covering Linux performance theory, melisa internals, and production tuning.
 
 ## Getting Started
 
 | # | Chapter | What You'll Learn |
 |---|---------|-------------------|
 | — | [Quick Start](00-quickstart.md) | Install → run → read results → fix → verify. 2 minutes to first diagnosis |
-| 0 | [Introduction](index.md) | What melisai is, USE methodology, three-tier architecture, report structure |
+| 0 | [Introduction](index.md) | What melisa is, USE methodology, three-tier architecture, report structure |
 | 1 | [Linux Fundamentals](01-linux-fundamentals.md) | /proc, /sys, jiffies, CPU states, cgroups v1/v2, PSI, buddy allocator |
 
 ## Performance Analysis

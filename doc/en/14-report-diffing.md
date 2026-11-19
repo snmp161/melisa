@@ -4,12 +4,12 @@
 
 Comparing two reports answers: "Did my tuning improve things?" or "Is today's performance worse than yesterday?"
 
-melisai's `diff` package (`internal/diff/diff.go`) compares USE metrics, histograms, and anomalies between a baseline and current report.
+melisa's `diff` package (`internal/diff/diff.go`) compares USE metrics, histograms, and anomalies between a baseline and current report.
 
 ## Source File: diff.go
 
 - **Lines**: ~150
-- **Purpose**: Structured comparison of two melisai reports
+- **Purpose**: Structured comparison of two melisa reports
 
 ## Diff Structure
 
@@ -95,8 +95,8 @@ Histogram: biolatency
 ## Usage
 
 ```bash
-melisai diff baseline.json current.json
-melisai diff baseline.json current.json --json    # structured output
+melisa diff baseline.json current.json
+melisa diff baseline.json current.json --json    # structured output
 ```
 
 ---

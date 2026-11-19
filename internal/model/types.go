@@ -1,4 +1,4 @@
-// Package model defines all data types for the melisai report output.
+// Package model defines all data types for the melisa report output.
 // These types are serialized to JSON and consumed by AI/LLM for analysis.
 // Schema version: 1.1.0
 package model
@@ -7,7 +7,7 @@ import "time"
 
 // --- Report: top-level output ---
 
-// Report is the complete melisai output document.
+// Report is the complete melisa output document.
 type Report struct {
 	Metadata   Metadata            `json:"metadata"`
 	System     SystemInfo          `json:"system"`
@@ -36,7 +36,7 @@ type Metadata struct {
 	ObserverOverhead *ObserverOverhead `json:"observer_overhead,omitempty"`
 }
 
-// ObserverOverhead records melisai's own resource consumption during collection.
+// ObserverOverhead records melisa's own resource consumption during collection.
 type ObserverOverhead struct {
 	SelfPID         int   `json:"self_pid"`
 	ChildPIDs       []int `json:"child_pids"`

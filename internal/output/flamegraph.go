@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/dmitriimaksimovdevelop/melisai/internal/model"
+	"github.com/snmp161/melisa/internal/model"
 )
 
 // GenerateFlameGraphSVG converts folded stacks to a simple FlameGraph SVG.

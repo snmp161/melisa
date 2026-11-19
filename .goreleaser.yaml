@@ -1,4 +1,5 @@
 version: 2
+project_name: melisa
 
 before:
   hooks:
@@ -13,7 +14,7 @@ builds:
     goarch:
       - amd64
       - arm64
-    main: ./cmd/melisai
+    main: ./cmd/melisa
     ldflags:
       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
 

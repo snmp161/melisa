@@ -1,12 +1,12 @@
 # Chapter 1: Linux Fundamentals for Performance Analysis
 
-Before diving into melisai's code, you need to understand **where** performance data comes from. Linux doesn't have a "performance API" — instead, the kernel exposes data through virtual filesystems and special files.
+Before diving into melisa's code, you need to understand **where** performance data comes from. Linux doesn't have a "performance API" — instead, the kernel exposes data through virtual filesystems and special files.
 
 ## The /proc Filesystem (procfs)
 
 `/proc` is a **virtual filesystem** — it doesn't live on disk. Every time you read a file in `/proc`, the kernel generates the content on-the-fly from internal data structures. No disk I/O occurs.
 
-### Key Files Used by melisai
+### Key Files Used by melisa
 
 | File | Content | Used by |
 |------|---------|---------|
@@ -53,13 +53,13 @@ system% = 20 / 1000 × 100 =  2.0%
 idle%  = 880 / 1000 × 100 = 88.0%
 ```
 
-This is exactly what melisai's `computeDelta()` function does.
+This is exactly what melisa's `computeDelta()` function does.
 
 ## The /sys Filesystem (sysfs)
 
 `/sys` represents the kernel's device model. Unlike `/proc` (which is mostly flat), `/sys` is a tree that mirrors the hardware/driver hierarchy.
 
-### Key Paths Used by melisai
+### Key Paths Used by melisa
 
 ```
 /sys/block/sda/queue/scheduler     ← Active I/O scheduler
@@ -86,7 +86,7 @@ Linux measures CPU time in **jiffies** — discrete time units. The rate is defi
 | 250 | 4 ms | Common desktop |
 | 1000 | 1 ms | Low-latency kernels |
 
-When melisai reads `/proc/stat`, it reads jiffie counts accumulated since boot. The `CLK_TCK` (clock ticks per second) is typically 100 on Linux, accessible via `sysconf(_SC_CLK_TCK)`.
+When melisa reads `/proc/stat`, it reads jiffie counts accumulated since boot. The `CLK_TCK` (clock ticks per second) is typically 100 on Linux, accessible via `sysconf(_SC_CLK_TCK)`.
 
 ### CPU States Explained
 
@@ -137,7 +137,7 @@ cpu.stat:
   throttled_usec = 58432 ← total time spent throttled (μs)
 ```
 
-Throttling is invisible to the application — it just appears as latency. melisai's ContainerCollector detects this.
+Throttling is invisible to the application — it just appears as latency. melisa's ContainerCollector detects this.
 
 ## Pressure Stall Information (PSI)
 
@@ -172,7 +172,7 @@ On multi-socket servers, each CPU has "local" memory (fast access) and "remote" 
 └───────────────────┘      └───────────────────┘
 ```
 
-melisai tracks `numa_hit` (memory allocated locally) vs `numa_miss` (allocated remotely). A high `numa_miss` ratio indicates your application process is accessing memory on the wrong socket, adding latency.
+melisa tracks `numa_hit` (memory allocated locally) vs `numa_miss` (allocated remotely). A high `numa_miss` ratio indicates your application process is accessing memory on the wrong socket, adding latency.
 
 ## The Buddy Allocator
 
@@ -207,7 +207,7 @@ When higher-order entries (right columns) are all zero, the memory is **fragment
 │           │                        │                 │
 │           ▼                        ▼                 │
 │  ┌─────────────────────────────────────────────────┐ │
-│  │              melisai collectors                  │ │
+│  │              melisa collectors                  │ │
 │  │  read files → parse text → delta compute →      │ │
 │  │  → structured Go types → JSON output            │ │
 │  └─────────────────────────────────────────────────┘ │

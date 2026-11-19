@@ -75,10 +75,10 @@
 ## CLI Reference
 
 ```
-melisai — Linux server performance diagnostic tool
+melisa — Linux server performance diagnostic tool
 
 Usage:
-  melisai [command]
+  melisa [command]
 
 Commands:
   collect       Collect system metrics and generate report

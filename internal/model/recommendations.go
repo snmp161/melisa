@@ -22,7 +22,7 @@ func GenerateRecommendations(report *Report) []Recommendation {
 						Category:       "cpu",
 						Type:           "fix",
 						Title:          "CPU saturation detected — investigate high-CPU processes",
-						Commands:       []string{"melisai collect --profile deep --focus stacks"},
+						Commands:       []string{"melisa collect --profile deep --focus stacks"},
 						Persistent:     []string{},
 						ExpectedImpact: "Identify CPU-bound bottleneck",
 						Evidence:       formatEvidence("load_avg_1=%.2f, num_cpus=%d", cpu.LoadAvg1, cpu.NumCPUs),
@@ -41,8 +41,8 @@ func GenerateRecommendations(report *Report) []Recommendation {
 							"sysctl -w kernel.sched_min_granularity_ns=750000",
 						},
 						Persistent: []string{
-							"echo 'kernel.sched_latency_ns=6000000' >> /etc/sysctl.d/99-melisai.conf",
-							"echo 'kernel.sched_min_granularity_ns=750000' >> /etc/sysctl.d/99-melisai.conf",
+							"echo 'kernel.sched_latency_ns=6000000' >> /etc/sysctl.d/99-melisa.conf",
+							"echo 'kernel.sched_min_granularity_ns=750000' >> /etc/sysctl.d/99-melisa.conf",
 						},
 						ExpectedImpact: "Lower tail latency for latency-sensitive workloads",
 						Evidence:       formatEvidence("sched_latency_ns=%d", cpu.SchedLatencyNS),
@@ -66,7 +66,7 @@ func GenerateRecommendations(report *Report) []Recommendation {
 						Title:    "Reduce swappiness for database/latency-sensitive workloads",
 						Commands: []string{"sysctl -w vm.swappiness=10"},
 						Persistent: []string{
-							"echo 'vm.swappiness=10' >> /etc/sysctl.d/99-melisai.conf",
+							"echo 'vm.swappiness=10' >> /etc/sysctl.d/99-melisa.conf",
 						},
 						ExpectedImpact: "Reduce swap-induced latency spikes",
 						Evidence:       formatEvidence("swappiness=%d, swap_used=%d", mem.Swappiness, mem.SwapUsedBytes),
@@ -85,8 +85,8 @@ func GenerateRecommendations(report *Report) []Recommendation {
 							"sysctl -w vm.dirty_background_ratio=5",
 						},
 						Persistent: []string{
-							"echo 'vm.dirty_ratio=10' >> /etc/sysctl.d/99-melisai.conf",
-							"echo 'vm.dirty_background_ratio=5' >> /etc/sysctl.d/99-melisai.conf",
+							"echo 'vm.dirty_ratio=10' >> /etc/sysctl.d/99-melisa.conf",
+							"echo 'vm.dirty_background_ratio=5' >> /etc/sysctl.d/99-melisa.conf",
 						},
 						ExpectedImpact: "Reduce periodic write stalls on heavy I/O workloads",
 						Evidence:       formatEvidence("dirty_ratio=%d", mem.DirtyRatio),
@@ -101,7 +101,7 @@ func GenerateRecommendations(report *Report) []Recommendation {
 						Type:           "optimization",
 						Title:          "Consider disabling memory overcommit for production",
 						Commands:       []string{"sysctl -w vm.overcommit_memory=2"},
-						Persistent:     []string{"echo 'vm.overcommit_memory=2' >> /etc/sysctl.d/99-melisai.conf"},
+						Persistent:     []string{"echo 'vm.overcommit_memory=2' >> /etc/sysctl.d/99-melisa.conf"},
 						ExpectedImpact: "Prevent OOM kills by enforcing commit limit",
 						Evidence:       formatEvidence("overcommit_memory=%d", mem.OvercommitMemory),
 						Source:         "Linux kernel documentation",
@@ -120,8 +120,8 @@ func GenerateRecommendations(report *Report) []Recommendation {
 							"sysctl -w vm.min_free_kbytes=131072",
 						},
 						Persistent: []string{
-							"echo 'vm.watermark_scale_factor=200' >> /etc/sysctl.d/99-melisai.conf",
-							"echo 'vm.min_free_kbytes=131072' >> /etc/sysctl.d/99-melisai.conf",
+							"echo 'vm.watermark_scale_factor=200' >> /etc/sysctl.d/99-melisa.conf",
+							"echo 'vm.min_free_kbytes=131072' >> /etc/sysctl.d/99-melisa.conf",
 						},
 						ExpectedImpact: "Trigger kswapd earlier, prevent applications from blocking on page reclaim",
 						Evidence:       formatEvidence("direct_reclaim_rate=%.0f/s, pgscan_direct=%d, allocstall=%d", mem.Reclaim.DirectReclaimRate, mem.Reclaim.PgscanDirect, mem.Reclaim.AllocstallNormal),
@@ -161,7 +161,7 @@ func GenerateRecommendations(report *Report) []Recommendation {
 								"sysctl -w kernel.sched_numa_balancing=1",
 							},
 							Persistent: []string{
-								"echo 'kernel.sched_numa_balancing=1' >> /etc/sysctl.d/99-melisai.conf",
+								"echo 'kernel.sched_numa_balancing=1' >> /etc/sysctl.d/99-melisa.conf",
 							},
 							ExpectedImpact: "Reduce cross-NUMA memory access (30-50% latency penalty per hop)",
 							Evidence:       formatEvidence("node%d: miss_ratio=%.1f%%, hit=%d, miss=%d, cpus=%s", node.Node, node.MissRatio, node.NumaHit, node.NumaMiss, node.CPUs),
@@ -208,8 +208,8 @@ func GenerateRecommendations(report *Report) []Recommendation {
 							"sysctl -w net.ipv4.tcp_congestion_control=bbr",
 						},
 						Persistent: []string{
-							"echo 'net.core.default_qdisc=fq' >> /etc/sysctl.d/99-melisai.conf",
-							"echo 'net.ipv4.tcp_congestion_control=bbr' >> /etc/sysctl.d/99-melisai.conf",
+							"echo 'net.core.default_qdisc=fq' >> /etc/sysctl.d/99-melisa.conf",
+							"echo 'net.ipv4.tcp_congestion_control=bbr' >> /etc/sysctl.d/99-melisa.conf",
 						},
 						ExpectedImpact: "2-3x throughput on high-BDP links, lower retransmits",
 						Evidence:       formatEvidence("tcp_congestion_control=%s", sc.CongestionCtrl),
@@ -223,7 +223,7 @@ func GenerateRecommendations(report *Report) []Recommendation {
 						Category:       "network",
 						Type:           "fix",
 						Title:          "Investigate TCP retransmissions",
-						Commands:       []string{"melisai collect --profile deep --focus network"},
+						Commands:       []string{"melisa collect --profile deep --focus network"},
 						ExpectedImpact: "Identify network path issues causing packet loss",
 						Evidence:       formatEvidence("retrans_rate=%.1f/s", net.TCP.RetransRate),
 						Source:         "Brendan Gregg, Systems Performance ch.10",
@@ -238,7 +238,7 @@ func GenerateRecommendations(report *Report) []Recommendation {
 						Title:    "Increase listen backlog for high-traffic servers",
 						Commands: []string{"sysctl -w net.core.somaxconn=4096"},
 						Persistent: []string{
-							"echo 'net.core.somaxconn=4096' >> /etc/sysctl.d/99-melisai.conf",
+							"echo 'net.core.somaxconn=4096' >> /etc/sysctl.d/99-melisa.conf",
 						},
 						ExpectedImpact: "Prevent connection drops under burst load",
 						Evidence:       formatEvidence("somaxconn=%d", sc.SomaxConn),
@@ -254,7 +254,7 @@ func GenerateRecommendations(report *Report) []Recommendation {
 						Title:    "Increase TCP receive buffer sizes",
 						Commands: []string{"sysctl -w net.ipv4.tcp_rmem='4096 87380 6291456'"},
 						Persistent: []string{
-							"echo 'net.ipv4.tcp_rmem=4096 87380 6291456' >> /etc/sysctl.d/99-melisai.conf",
+							"echo 'net.ipv4.tcp_rmem=4096 87380 6291456' >> /etc/sysctl.d/99-melisa.conf",
 						},
 						ExpectedImpact: "Better throughput on high-BDP paths",
 						Evidence:       formatEvidence("tcp_rmem=%s", sc.TCPRmem),
@@ -270,7 +270,7 @@ func GenerateRecommendations(report *Report) []Recommendation {
 						Title:    "Increase TCP send buffer sizes",
 						Commands: []string{"sysctl -w net.ipv4.tcp_wmem='4096 65536 6291456'"},
 						Persistent: []string{
-							"echo 'net.ipv4.tcp_wmem=4096 65536 6291456' >> /etc/sysctl.d/99-melisai.conf",
+							"echo 'net.ipv4.tcp_wmem=4096 65536 6291456' >> /etc/sysctl.d/99-melisa.conf",
 						},
 						ExpectedImpact: "Better throughput on high-BDP paths",
 						Evidence:       formatEvidence("tcp_wmem=%s", sc.TCPWmem),
@@ -286,7 +286,7 @@ func GenerateRecommendations(report *Report) []Recommendation {
 						Title:    "Enable TIME_WAIT socket reuse",
 						Commands: []string{"sysctl -w net.ipv4.tcp_tw_reuse=1"},
 						Persistent: []string{
-							"echo 'net.ipv4.tcp_tw_reuse=1' >> /etc/sysctl.d/99-melisai.conf",
+							"echo 'net.ipv4.tcp_tw_reuse=1' >> /etc/sysctl.d/99-melisa.conf",
 						},
 						ExpectedImpact: "Reduce TIME_WAIT socket accumulation on busy servers",
 						Evidence:       formatEvidence("tcp_tw_reuse=%d, timewait_count=%d", sc.TCPTWReuse, net.TCP.TimeWaitCount),
@@ -302,7 +302,7 @@ func GenerateRecommendations(report *Report) []Recommendation {
 						Title:    "Increase SYN backlog for high-connection-rate servers",
 						Commands: []string{"sysctl -w net.ipv4.tcp_max_syn_backlog=8192"},
 						Persistent: []string{
-							"echo 'net.ipv4.tcp_max_syn_backlog=8192' >> /etc/sysctl.d/99-melisai.conf",
+							"echo 'net.ipv4.tcp_max_syn_backlog=8192' >> /etc/sysctl.d/99-melisa.conf",
 						},
 						ExpectedImpact: "Handle connection bursts without SYN drops",
 						Evidence:       formatEvidence("tcp_max_syn_backlog=%d", sc.TCPMaxSynBacklog),
@@ -320,7 +320,7 @@ func GenerateRecommendations(report *Report) []Recommendation {
 							fmt.Sprintf("sysctl -w net.netfilter.nf_conntrack_max=%d", net.Conntrack.Max*2),
 						},
 						Persistent: []string{
-							fmt.Sprintf("echo 'net.netfilter.nf_conntrack_max=%d' >> /etc/sysctl.d/99-melisai.conf", net.Conntrack.Max*2),
+							fmt.Sprintf("echo 'net.netfilter.nf_conntrack_max=%d' >> /etc/sysctl.d/99-melisa.conf", net.Conntrack.Max*2),
 						},
 						ExpectedImpact: "Prevent conntrack table full drops",
 						Evidence:       formatEvidence("conntrack count=%d, max=%d, usage=%.1f%%", net.Conntrack.Count, net.Conntrack.Max, net.Conntrack.UsagePct),
@@ -356,7 +356,7 @@ func GenerateRecommendations(report *Report) []Recommendation {
 							"# For nginx: listen 80 reuseport backlog=8192;",
 						},
 						Persistent: []string{
-							"echo 'net.core.somaxconn=65535' >> /etc/sysctl.d/99-melisai.conf",
+							"echo 'net.core.somaxconn=65535' >> /etc/sysctl.d/99-melisa.conf",
 						},
 						ExpectedImpact: "Eliminate accept queue overflow drops under burst load",
 						Evidence:       formatEvidence("ListenOverflows=%d, ListenDrops=%d", net.TCPExt.ListenOverflows, net.TCPExt.ListenDrops),
@@ -382,7 +382,7 @@ func GenerateRecommendations(report *Report) []Recommendation {
 								"sysctl -w net.core.netdev_max_backlog=10000",
 							},
 							Persistent: []string{
-								"echo 'net.core.netdev_max_backlog=10000' >> /etc/sysctl.d/99-melisai.conf",
+								"echo 'net.core.netdev_max_backlog=10000' >> /etc/sysctl.d/99-melisa.conf",
 							},
 							ExpectedImpact: "Reduce packet drops between NIC and kernel processing",
 							Evidence:       formatEvidence("netdev_max_backlog=%d", sc.NetdevMaxBacklog),
@@ -402,8 +402,8 @@ func GenerateRecommendations(report *Report) []Recommendation {
 							"sysctl -w net.core.wmem_max=16777216",
 						},
 						Persistent: []string{
-							"echo 'net.core.rmem_max=16777216' >> /etc/sysctl.d/99-melisai.conf",
-							"echo 'net.core.wmem_max=16777216' >> /etc/sysctl.d/99-melisai.conf",
+							"echo 'net.core.rmem_max=16777216' >> /etc/sysctl.d/99-melisa.conf",
+							"echo 'net.core.wmem_max=16777216' >> /etc/sysctl.d/99-melisa.conf",
 						},
 						ExpectedImpact: "Allow applications to request larger socket buffers (required for high-BDP and UDP workloads)",
 						Evidence:       formatEvidence("rmem_max=%d, wmem_max=%d", sc.RmemMax, sc.WmemMax),
@@ -426,7 +426,7 @@ func GenerateRecommendations(report *Report) []Recommendation {
 									"sysctl -w net.ipv4.ip_local_port_range='1024 65535'",
 								},
 								Persistent: []string{
-									"echo 'net.ipv4.ip_local_port_range=1024 65535' >> /etc/sysctl.d/99-melisai.conf",
+									"echo 'net.ipv4.ip_local_port_range=1024 65535' >> /etc/sysctl.d/99-melisa.conf",
 								},
 								ExpectedImpact: "More ports for outbound connections (prevents EADDRNOTAVAIL under load)",
 								Evidence:       formatEvidence("ip_local_port_range=%s (%d ports)", sc.IPLocalPortRange, hi-lo),
@@ -446,7 +446,7 @@ func GenerateRecommendations(report *Report) []Recommendation {
 							"sysctl -w net.ipv4.tcp_slow_start_after_idle=0",
 						},
 						Persistent: []string{
-							"echo 'net.ipv4.tcp_slow_start_after_idle=0' >> /etc/sysctl.d/99-melisai.conf",
+							"echo 'net.ipv4.tcp_slow_start_after_idle=0' >> /etc/sysctl.d/99-melisa.conf",
 						},
 						ExpectedImpact: "Prevent congestion window reset on idle keepalive connections",
 						Evidence:       formatEvidence("tcp_slow_start_after_idle=%d", sc.TCPSlowStartAfterIdle),
@@ -464,7 +464,7 @@ func GenerateRecommendations(report *Report) []Recommendation {
 							"sysctl -w net.ipv4.tcp_fastopen=3",
 						},
 						Persistent: []string{
-							"echo 'net.ipv4.tcp_fastopen=3' >> /etc/sysctl.d/99-melisai.conf",
+							"echo 'net.ipv4.tcp_fastopen=3' >> /etc/sysctl.d/99-melisa.conf",
 						},
 						ExpectedImpact: "Save 1 RTT on reconnections (especially for web servers)",
 						Evidence:       formatEvidence("tcp_fastopen=%d", sc.TCPFastOpen),
@@ -492,8 +492,8 @@ func GenerateRecommendations(report *Report) []Recommendation {
 							"sysctl -w net.core.netdev_budget_usecs=8000",
 						},
 						Persistent: []string{
-							"echo 'net.core.netdev_budget=600' >> /etc/sysctl.d/99-melisai.conf",
-							"echo 'net.core.netdev_budget_usecs=8000' >> /etc/sysctl.d/99-melisai.conf",
+							"echo 'net.core.netdev_budget=600' >> /etc/sysctl.d/99-melisa.conf",
+							"echo 'net.core.netdev_budget_usecs=8000' >> /etc/sysctl.d/99-melisa.conf",
 						},
 						ExpectedImpact: "Allow kernel more time/packets per NAPI poll cycle",
 						Evidence:       formatEvidence("netdev_budget=%d, netdev_budget_usecs=%d", sc.NetdevBudget, sc.NetdevBudgetUsecs),
@@ -511,7 +511,7 @@ func GenerateRecommendations(report *Report) []Recommendation {
 							"sysctl -w net.core.rmem_max=26214400",
 						},
 						Persistent: []string{
-							"echo 'net.core.rmem_max=26214400' >> /etc/sysctl.d/99-melisai.conf",
+							"echo 'net.core.rmem_max=26214400' >> /etc/sysctl.d/99-melisa.conf",
 						},
 						ExpectedImpact: "Allow UDP sockets to use larger receive buffers, prevent drops",
 						Evidence:       formatEvidence("udp_rcvbuf_errors=%d, rmem_max=%d", net.UDP.RcvbufErrors, sc.RmemMax),
@@ -572,7 +572,7 @@ func GenerateRecommendations(report *Report) []Recommendation {
 							"# Profile the application: is read() blocking on disk, locks, or compute?",
 						},
 						Persistent: []string{
-							"echo 'net.ipv4.tcp_rmem=4096 131072 16777216' >> /etc/sysctl.d/99-melisai.conf",
+							"echo 'net.ipv4.tcp_rmem=4096 131072 16777216' >> /etc/sysctl.d/99-melisa.conf",
 						},
 						ExpectedImpact: "Larger receive buffers give the application more headroom before window closes",
 						Evidence:       formatEvidence("tcp_zero_window_drop_rate=%.1f/s, tcp_to_zero_window=%d", net.TCPExt.TCPZeroWindowDropRate, net.TCPExt.TCPToZeroWindowAdv),
@@ -594,9 +594,9 @@ func GenerateRecommendations(report *Report) []Recommendation {
 							"sysctl -w net.ipv4.neigh.default.gc_thresh3=8192",
 						},
 						Persistent: []string{
-							"echo 'net.ipv4.neigh.default.gc_thresh1=2048' >> /etc/sysctl.d/99-melisai.conf",
-							"echo 'net.ipv4.neigh.default.gc_thresh2=4096' >> /etc/sysctl.d/99-melisai.conf",
-							"echo 'net.ipv4.neigh.default.gc_thresh3=8192' >> /etc/sysctl.d/99-melisai.conf",
+							"echo 'net.ipv4.neigh.default.gc_thresh1=2048' >> /etc/sysctl.d/99-melisa.conf",
+							"echo 'net.ipv4.neigh.default.gc_thresh2=4096' >> /etc/sysctl.d/99-melisa.conf",
+							"echo 'net.ipv4.neigh.default.gc_thresh3=8192' >> /etc/sysctl.d/99-melisa.conf",
 						},
 						ExpectedImpact: "Prevent 'neighbour table overflow' errors in large subnets or container environments",
 						Evidence:       formatEvidence("arp_gc_thresh3=%d", sc.ARPGcThresh3),
@@ -615,7 +615,7 @@ func GenerateRecommendations(report *Report) []Recommendation {
 							"sysctl -w net.ipv4.tcp_mem='1048576 2097152 4194304'",
 						},
 						Persistent: []string{
-							"echo 'net.ipv4.tcp_mem=1048576 2097152 4194304' >> /etc/sysctl.d/99-melisai.conf",
+							"echo 'net.ipv4.tcp_mem=1048576 2097152 4194304' >> /etc/sysctl.d/99-melisa.conf",
 						},
 						ExpectedImpact: "Prevent kernel from pruning TCP receive buffers under high connection count",
 						Evidence:       formatEvidence("PruneCalled=%d, tcp_mem=%s", net.TCPExt.PruneCalled, sc.TCPMem),
@@ -703,7 +703,7 @@ func GenerateRecommendations(report *Report) []Recommendation {
 						Title:    "Increase vm.min_free_kbytes for large memory system",
 						Commands: []string{"sysctl -w vm.min_free_kbytes=131072"},
 						Persistent: []string{
-							"echo 'vm.min_free_kbytes=131072' >> /etc/sysctl.d/99-melisai.conf",
+							"echo 'vm.min_free_kbytes=131072' >> /etc/sysctl.d/99-melisa.conf",
 						},
 						ExpectedImpact: "Reduce direct reclaim stalls under memory pressure",
 						Evidence:       formatEvidence("min_free_kbytes=%d, total_bytes=%d", mem.MinFreeKbytes, mem.TotalBytes),

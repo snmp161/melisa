@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dmitriimaksimovdevelop/melisai/internal/collector"
-	"github.com/dmitriimaksimovdevelop/melisai/internal/model"
-	"github.com/dmitriimaksimovdevelop/melisai/internal/orchestrator"
-	"github.com/dmitriimaksimovdevelop/melisai/internal/output"
+	"github.com/snmp161/melisa/internal/collector"
+	"github.com/snmp161/melisa/internal/model"
+	"github.com/snmp161/melisa/internal/orchestrator"
+	"github.com/snmp161/melisa/internal/output"
 	"github.com/mark3labs/mcp-go/mcp"
 )
 

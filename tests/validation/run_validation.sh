@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# run_validation.sh — orchestrator for melisai validation tests
+# run_validation.sh — orchestrator for melisa validation tests
 #
-# Runs known workloads, collects with melisai, validates expected anomalies.
+# Runs known workloads, collects with melisa, validates expected anomalies.
 #
 # Usage:
-#   bash run_validation.sh [--binary /path/to/melisai] [--test <name>] [--output-dir /path]
+#   bash run_validation.sh [--binary /path/to/melisa] [--test <name>] [--output-dir /path]
 #
 # Requirements: root, stress-ng, iperf3, iproute2, python3
 
@@ -15,15 +15,15 @@ set -euo pipefail
 # =============================================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SYSDIAG_BINARY="${SYSDIAG_BINARY:-/usr/local/bin/melisai}"
-OUTPUT_DIR="${OUTPUT_DIR:-/tmp/melisai-validation}"
+MELISA_BINARY="${MELISA_BINARY:-/usr/local/bin/melisa}"
+OUTPUT_DIR="${OUTPUT_DIR:-/tmp/melisa-validation}"
 SINGLE_TEST=""
 SETTLE_TIME=8  # seconds to let workload stabilize before collecting
 
 # Parse args
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --binary)  SYSDIAG_BINARY="$2"; shift 2 ;;
+        --binary)  MELISA_BINARY="$2"; shift 2 ;;
         --test)    SINGLE_TEST="$2"; shift 2 ;;
         --output-dir) OUTPUT_DIR="$2"; shift 2 ;;
         *) echo "Unknown option: $1"; exit 1 ;;
@@ -42,8 +42,8 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-if [[ ! -x "$SYSDIAG_BINARY" ]]; then
-    echo "ERROR: melisai binary not found or not executable: $SYSDIAG_BINARY" >&2
+if [[ ! -x "$MELISA_BINARY" ]]; then
+    echo "ERROR: melisa binary not found or not executable: $MELISA_BINARY" >&2
     exit 1
 fi
 
@@ -73,7 +73,7 @@ install_prereqs() {
 }
 
 # =============================================================================
-# OOM protection for this script and melisai
+# OOM protection for this script and melisa
 # =============================================================================
 
 protect_from_oom() {
@@ -88,8 +88,8 @@ global_cleanup() {
     echo
     echo "=== Global cleanup ==="
     cleanup_workload
-    # Kill any remaining melisai processes
-    pkill -9 -f "melisai" 2>/dev/null || true
+    # Kill any remaining melisa processes
+    pkill -9 -f "melisa" 2>/dev/null || true
     echo "  Cleanup complete"
 }
 trap global_cleanup EXIT
@@ -147,21 +147,21 @@ run_test() {
         echo "    $alive workload process(es) running"
     fi
 
-    # Run melisai with OOM protection
-    echo "  [3/4] Running melisai (profile=$profile, duration=${duration}s)..."
-    local melisai_start
-    melisai_start=$(date +%s)
+    # Run melisa with OOM protection
+    echo "  [3/4] Running melisa (profile=$profile, duration=${duration}s)..."
+    local melisa_start
+    melisa_start=$(date +%s)
 
-    timeout 120 "$SYSDIAG_BINARY" collect \
+    timeout 120 "$MELISA_BINARY" collect \
         --profile "$profile" \
         --duration "${duration}s" \
         --output "$report_file" \
         --quiet 2>&1 | sed 's/^/    /' || true
 
-    local melisai_end
-    melisai_end=$(date +%s)
-    local elapsed=$(( melisai_end - melisai_start ))
-    echo "    melisai finished in ${elapsed}s"
+    local melisa_end
+    melisa_end=$(date +%s)
+    local elapsed=$(( melisa_end - melisa_start ))
+    echo "    melisa finished in ${elapsed}s"
 
     # Stop workload
     echo "  [4/4] Stopping workload..."
@@ -219,21 +219,21 @@ run_observer_test() {
 
     sleep 5
 
-    # Observed: stress-ng benchmark + melisai running concurrently
-    echo "  [2/4] Running benchmark WITH melisai..."
+    # Observed: stress-ng benchmark + melisa running concurrently
+    echo "  [2/4] Running benchmark WITH melisa..."
 
-    # Start melisai in background
-    timeout 30 "$SYSDIAG_BINARY" collect \
+    # Start melisa in background
+    timeout 30 "$MELISA_BINARY" collect \
         --profile quick \
         --duration 10s \
         --output "$report_file" \
         --quiet &
-    local melisai_pid=$!
+    local melisa_pid=$!
 
-    # Record melisai RSS before benchmark
+    # Record melisa RSS before benchmark
     sleep 2
     local rss_before
-    rss_before=$(ps -o rss= -p "$melisai_pid" 2>/dev/null | tr -d ' ') || rss_before=0
+    rss_before=$(ps -o rss= -p "$melisa_pid" 2>/dev/null | tr -d ' ') || rss_before=0
 
     # Run benchmark
     stress-ng --cpu "$(nproc)" --cpu-load 80 --cpu-method matrixprod -t 15s --metrics-brief &>"$observed_file" || true
@@ -241,12 +241,12 @@ run_observer_test() {
     observed_bogo=$(awk '/metrc:.*cpu[[:space:]]/ && !/stressor/ {print $(NF-1)}' "$observed_file") || true
     echo "    Observed bogo ops/s: ${observed_bogo:-unknown}"
 
-    # Record melisai peak RSS
+    # Record melisa peak RSS
     local rss_after
-    rss_after=$(ps -o rss= -p "$melisai_pid" 2>/dev/null | tr -d ' ') || rss_after=0
+    rss_after=$(ps -o rss= -p "$melisa_pid" 2>/dev/null | tr -d ' ') || rss_after=0
 
-    # Wait for melisai to finish
-    wait "$melisai_pid" 2>/dev/null || true
+    # Wait for melisa to finish
+    wait "$melisa_pid" 2>/dev/null || true
 
     # Calculate overhead
     echo "  [3/4] Calculating overhead..."
@@ -272,13 +272,13 @@ print(f'{pct:.2f}')
 
     if [[ -n "$rss_after" && "$rss_after" != "0" ]]; then
         rss_mib=$(( rss_after / 1024 ))
-        echo "    melisai peak RSS: ${rss_mib} MiB"
+        echo "    melisa peak RSS: ${rss_mib} MiB"
         pass_rss=$(python3 -c "print('true' if $rss_mib < 500 else 'false')")
     else
         # Use rss_before if after isn't available
         if [[ -n "$rss_before" && "$rss_before" != "0" ]]; then
             rss_mib=$(( rss_before / 1024 ))
-            echo "    melisai RSS (during): ${rss_mib} MiB"
+            echo "    melisa RSS (during): ${rss_mib} MiB"
             pass_rss=$(python3 -c "print('true' if $rss_mib < 500 else 'false')")
         else
             echo "    Could not measure RSS"
@@ -317,9 +317,9 @@ print(f'{pct:.2f}')
 # =============================================================================
 
 echo "============================================"
-echo "  melisai Validation Test Suite"
+echo "  melisa Validation Test Suite"
 echo "============================================"
-echo "  Binary:     $SYSDIAG_BINARY"
+echo "  Binary:     $MELISA_BINARY"
 echo "  Output dir: $OUTPUT_DIR"
 echo "  Single test: ${SINGLE_TEST:-all}"
 echo "  Date:       $(date -Iseconds)"

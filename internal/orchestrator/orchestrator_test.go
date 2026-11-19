@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dmitriimaksimovdevelop/melisai/internal/collector"
-	"github.com/dmitriimaksimovdevelop/melisai/internal/model"
+	"github.com/snmp161/melisa/internal/collector"
+	"github.com/snmp161/melisa/internal/model"
 )
 
 // mockCollector implements collector.Collector for testing.
@@ -88,8 +88,8 @@ func TestOrchestratorRunBasic(t *testing.T) {
 		t.Fatalf("Run: %v", err)
 	}
 
-	if report.Metadata.Tool != "melisai" {
-		t.Errorf("tool = %q, want melisai", report.Metadata.Tool)
+	if report.Metadata.Tool != "melisa" {
+		t.Errorf("tool = %q, want melisa", report.Metadata.Tool)
 	}
 
 	if len(report.Categories) != 2 {
@@ -793,8 +793,8 @@ func TestReportMetadata(t *testing.T) {
 		t.Fatalf("Run: %v", err)
 	}
 
-	if report.Metadata.Tool != "melisai" {
-		t.Errorf("tool = %q, want melisai", report.Metadata.Tool)
+	if report.Metadata.Tool != "melisa" {
+		t.Errorf("tool = %q, want melisa", report.Metadata.Tool)
 	}
 	if report.Metadata.SchemaVersion != "1.1.0" {
 		t.Errorf("schema_version = %q, want 1.1.0", report.Metadata.SchemaVersion)

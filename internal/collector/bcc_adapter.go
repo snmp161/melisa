@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/dmitriimaksimovdevelop/melisai/internal/executor"
-	"github.com/dmitriimaksimovdevelop/melisai/internal/model"
-	"github.com/dmitriimaksimovdevelop/melisai/internal/observer"
+	"github.com/snmp161/melisa/internal/executor"
+	"github.com/snmp161/melisa/internal/model"
+	"github.com/snmp161/melisa/internal/observer"
 )
 
 // BCCCollector adapts the executor.BCCExecutor to the Collector interface.

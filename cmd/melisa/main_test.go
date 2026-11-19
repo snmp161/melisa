@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dmitriimaksimovdevelop/melisai/internal/collector"
-	"github.com/dmitriimaksimovdevelop/melisai/internal/orchestrator"
+	"github.com/snmp161/melisa/internal/collector"
+	"github.com/snmp161/melisa/internal/orchestrator"
 )
 
 // TestCLIConfigWiring verifies that CLI flags produce the correct CollectConfig.

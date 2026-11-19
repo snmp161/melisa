@@ -168,10 +168,9 @@ func (e *BCCExecutor) Run(ctx context.Context, tool string, args []string, durat
 		case strings.Contains(raw.Stderr, "Failed to compile BPF module"):
 			// Typical on Ubuntu 24.04 with bpfcc-tools 0.29: BCC's bundled
 			// libbpf headers lack BPF_CGROUP_UNIX_* enums that newer kernel
-			// headers reference. Not a melisai bug — tracked in issue #23.
+			// headers reference.
 			log.Printf("[executor] %s: BCC failed to compile BPF program "+
-				"(kernel/BCC version mismatch; see https://github.com/dmitriimaksimovdevelop/melisai/issues/23)",
-				tool)
+				"(kernel/BCC version mismatch)", tool)
 		case strings.Contains(raw.Stderr, "Traceback"):
 			log.Printf("[executor] %s: BCC tool raised a Python exception; data unavailable", tool)
 		default:

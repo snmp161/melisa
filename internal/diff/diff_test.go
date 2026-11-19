@@ -1,9 +1,11 @@
 package diff
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
-	"github.com/dmitriimaksimovdevelop/melisai/internal/model"
+	"github.com/snmp161/melisa/internal/model"
 )
 
 func TestCompareReports(t *testing.T) {
@@ -134,5 +136,34 @@ func TestFormatDiff(t *testing.T) {
 	}
 	if len(output) < 50 {
 		t.Error("diff output too short")
+	}
+}
+
+func TestLegacyMelisaiReportCompatibility(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "legacy.json")
+	data := []byte(`{
+		"metadata": {"tool": "melisai", "schema_version": "1.1.0", "timestamp": "before"},
+		"categories": {},
+		"summary": {"health_score": 80, "anomalies": [], "resources": {}}
+	}`)
+	if err := os.WriteFile(path, data, 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	legacy, err := LoadReport(path)
+	if err != nil {
+		t.Fatalf("LoadReport: %v", err)
+	}
+	if legacy.Metadata.Tool != "melisai" {
+		t.Fatalf("legacy tool = %q, want melisai", legacy.Metadata.Tool)
+	}
+
+	current := &model.Report{
+		Metadata:   model.Metadata{Tool: "melisa", Timestamp: "after"},
+		Summary:    model.Summary{HealthScore: 90, Resources: map[string]model.USEMetric{}},
+		Categories: map[string][]model.Result{},
+	}
+	if got := Compare(legacy, current).HealthDelta; got != 10 {
+		t.Errorf("health delta = %d, want 10", got)
 	}
 }

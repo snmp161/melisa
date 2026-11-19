@@ -1,8 +1,8 @@
-# melisai
+# melisa
 
-![melisai terminal demo](doc/images/melisai_quick_profile.gif)
+![melisa terminal demo](doc/images/melisa_quick_profile.gif)
 
-melisai is a point-in-time Linux performance diagnostic tool. It collects data through 8 procfs/sysfs collectors, a registry of 67 BCC tools, and one native eBPF collector, then produces a JSON report with raw measurements, threshold-based anomalies, a heuristic health score, and suggested tuning actions. It works as a standalone CLI or as an MCP server for interactive analysis.
+melisa is a point-in-time Linux performance diagnostic tool. It collects data through 8 procfs/sysfs collectors, a registry of 67 BCC tools, and one native eBPF collector, then produces a JSON report with raw measurements, threshold-based anomalies, a heuristic health score, and suggested tuning actions. It works as a standalone CLI or as an MCP server for interactive analysis.
 
 [![Go 1.25+](https://img.shields.io/badge/Go-1.25%2B-00ADD8?logo=go)](https://go.dev)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
@@ -10,7 +10,7 @@ melisai is a point-in-time Linux performance diagnostic tool. It collects data t
 [![Schema](https://img.shields.io/badge/schema-v1.1.0-blue)]()
 
 ```bash
-sudo melisai collect --profile quick -o report.json
+sudo melisa collect --profile quick -o report.json
 ```
 
 The command writes a JSON report to `report.json` (`-o -` selects stdout). Total runtime depends on the selected profile, host, and available collection tools.
@@ -32,7 +32,7 @@ The command writes a JSON report to `report.json` (`-o -` selects stdout). Total
 | **MCP Server** | MCP access over stdio for interactive diagnostics |
 | **Before/After Diff** | Comparison of health scores, USE metrics, anomalies, and histograms |
 | **Observer Effect Mitigation** | Tier 1 baselines run before BCC/eBPF tools; PID exclusion and overhead measurement |
-| **Documentation** | 22 chapters in English and Russian covering Linux performance and melisai internals |
+| **Documentation** | 22 chapters in English and Russian covering Linux performance and melisa internals |
 
 ---
 
@@ -40,32 +40,32 @@ The command writes a JSON report to `report.json` (`-o -` selects stdout). Total
 
 ```bash
 # Build (requires Go 1.25+, cross-compile from macOS/Linux)
-GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o melisai ./cmd/melisai/
+GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o melisa ./cmd/melisa/
 
 # Deploy and run
-scp melisai root@server:/usr/local/bin/
-ssh root@server "melisai collect --profile quick -o /tmp/report.json"
+scp melisa root@server:/usr/local/bin/
+ssh root@server "melisa collect --profile quick -o /tmp/report.json"
 
 # Install BCC tools (first time only)
-ssh root@server "melisai install"
+ssh root@server "melisa install"
 ```
 
-The CLI does not require a configuration file. Tier 2 tools are optional and can be installed with `melisai install`.
+The CLI does not require a configuration file. Tier 2 tools are optional and can be installed with `melisa install`.
 
 ---
 
 ## MCP Server
 
-melisai includes a built-in [Model Context Protocol](https://modelcontextprotocol.io/) server. AI agents connect over stdio and interactively diagnose system performance.
+melisa includes a built-in [Model Context Protocol](https://modelcontextprotocol.io/) server. AI agents connect over stdio and interactively diagnose system performance.
 
 **Claude Desktop / Cursor config** (`claude_desktop_config.json`):
 
 ```json
 {
   "mcpServers": {
-    "melisai": {
+    "melisa": {
       "command": "ssh",
-      "args": ["root@your-server", "/usr/local/bin/melisai", "mcp"]
+      "args": ["root@your-server", "/usr/local/bin/melisa", "mcp"]
     }
   }
 }
@@ -83,7 +83,7 @@ melisai includes a built-in [Model Context Protocol](https://modelcontextprotoco
 ### Typical AI Workflow
 
 ```
-Agent                              melisai
+Agent                              melisa
   │                                   │
   ├── get_health ──────────────────►  │  "score: 68, cpu_utilization CRITICAL"
   │                                   │
@@ -110,7 +110,7 @@ Tier 1: 8 collectors (/proc, /sys, ss, ethtool, nvidia-smi, dmesg)
         process data, logs, and some metrics depend on permissions.
 
 Tier 2: 67 BCC tools — runqlat, biolatency, tcpconnlat, etc.
-        Root + bcc-tools required. `melisai install` handles setup.
+        Root + bcc-tools required. `melisa install` handles setup.
 
 Tier 3: Native eBPF (cilium/ebpf) — tcpretrans kprobe
         Root + kernel ≥ 5.8 + BTF. Does not require BCC for this collector.
@@ -145,22 +145,22 @@ The intervals control collection, not the total command runtime. Tool startup, e
 
 ```bash
 # Quick health check
-sudo melisai collect --profile quick -o report.json
+sudo melisa collect --profile quick -o report.json
 
 # Full analysis with AI prompt
-sudo melisai collect --profile standard --ai-prompt -o report.json
+sudo melisa collect --profile standard --ai-prompt -o report.json
 
 # Deep dive focused on disk
-sudo melisai collect --profile deep --focus disk -o report.json
+sudo melisa collect --profile deep --focus disk -o report.json
 
 # Profile a specific process
-sudo melisai collect --profile standard --pid 12345 -o app.json
+sudo melisa collect --profile standard --pid 12345 -o app.json
 
 # Profile a container
-sudo melisai collect --profile standard --cgroup /sys/fs/cgroup/system.slice/nginx.service -o nginx.json
+sudo melisa collect --profile standard --cgroup /sys/fs/cgroup/system.slice/nginx.service -o nginx.json
 
 # Compare before/after a change
-melisai diff before.json after.json -o diff.json
+melisa diff before.json after.json -o diff.json
 ```
 
 ---
@@ -245,7 +245,7 @@ jq '.categories.cpu[].histograms[]? | {name, p50, p99, max}' report.json
 
 ## Documentation — 22 Chapters (EN + RU)
 
-Chapters covering Linux performance concepts and melisai implementation:
+Chapters covering Linux performance concepts and melisa implementation:
 
 | Chapters | Topic |
 |----------|-------|
@@ -266,7 +266,7 @@ All chapters available in English and Russian: [`doc/en/`](doc/en/) | [`doc/ru/`
 ## Architecture
 
 ```
-cmd/melisai/           CLI (cobra) + MCP subcommand
+cmd/melisa/           CLI (cobra) + MCP subcommand
 internal/
   ├── collector/       8 Tier 1 collectors + BCC adapter + GPU/PCIe
   ├── executor/        BCC runner, security, output parsers, tool registry
@@ -290,7 +290,7 @@ internal/
 |---|---|---|
 | **Build** | Go 1.25+ | Cross-compile: `GOOS=linux GOARCH=amd64` |
 | **Tier 1** | Linux procfs/sysfs | Core reads usually need no root; external utilities and some metrics depend on permissions |
-| **Tier 2** | Root + bcc-tools | `sudo melisai install` handles installation; some distros also need kernel headers |
+| **Tier 2** | Root + bcc-tools | `sudo melisa install` handles installation; some distros also need kernel headers |
 | **Tier 3** | Root + kernel ≥ 5.8 with BTF | Falls back to Tier 2 when the native collector is unavailable |
 
 ### Integration Test Targets
@@ -339,7 +339,7 @@ Please open an issue first to discuss significant changes.
 
 | Problem | Fix |
 |---------|-----|
-| `tool "X" not found` | `sudo melisai install` |
+| `tool "X" not found` | `sudo melisa install` |
 | `binary "X" not owned by root` | `chown root:root /usr/sbin/X-bpfcc` |
 | Empty histogram data | Normal — no events during window |
 | `exit status 1` from BCC tool | Check `dmesg` for BPF errors |
@@ -348,13 +348,13 @@ Please open an issue first to discuss significant changes.
 
 ## Limitations
 
-- **Not a monitoring system.** melisai produces an on-demand snapshot. For continuous monitoring, use tools such as Prometheus, Grafana, or Datadog alongside it.
-- **No historical trends or alerting.** Reports describe the collection interval; melisai does not store a time series or run as a daemon.
+- **Not a monitoring system.** melisa produces an on-demand snapshot. For continuous monitoring, use tools such as Prometheus, Grafana, or Datadog alongside it.
+- **No historical trends or alerting.** Reports describe the collection interval; melisa does not store a time series or run as a daemon.
 - **No automatic proof of causality.** Anomalies are independent threshold checks. Correlating them into a root-cause chain requires additional analysis.
 - **Heuristic scoring.** Health Score is a weighted heuristic summary, not a calibrated measure of failure probability or overall system health.
 - **Recommendations require review.** Suggested sysctls and commands may not be appropriate for every workload; validate them before applying to production.
 - **Environment-dependent collection.** BCC tools require root, compatible kernel/BCC versions, and sometimes kernel headers. Tier 1 output can be partial when external utilities, files, or permissions are unavailable.
-- **System-level only.** melisai does not explain application-internal causes. Use application profilers and traces for that analysis.
+- **System-level only.** melisa does not explain application-internal causes. Use application profilers and traces for that analysis.
 - **NVIDIA GPUs only.** AMD ROCm support is not implemented.
 
 ---
@@ -364,5 +364,7 @@ Please open an issue first to discuss significant changes.
 [Apache License 2.0](LICENSE)
 
 ---
+
+Melisa is derived from [melisai](https://github.com/dmitriimaksimovdevelop/melisai). Original copyright and license notices are preserved in [LICENSE](LICENSE).
 
 **Built on the shoulders of [Brendan Gregg's](https://www.brendangregg.com/) BPF ecosystem, the [USE Method](https://www.brendangregg.com/usemethod.html), and [cilium/ebpf](https://github.com/cilium/ebpf).**

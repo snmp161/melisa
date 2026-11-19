@@ -6,24 +6,24 @@
 
 ```bash
 # Один команда (Linux amd64/arm64)
-curl -sSL https://melisai.dev/install | sh
+curl -sSL https://melisa.dev/install | sh
 
 # Или сборка из исходников
-GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o melisai ./cmd/melisai/
-sudo mv melisai /usr/local/bin/
+GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o melisa ./cmd/melisa/
+sudo mv melisa /usr/local/bin/
 ```
 
 ## 2. Первый запуск
 
 ```bash
 # Быстрая проверка (10 секунд, BCC tools не обязательны)
-sudo melisai collect --profile quick -o report.json
+sudo melisa collect --profile quick -o report.json
 ```
 
 Вы увидите:
 
 ```
-melisai v0.4.1 | profile=quick | duration=10s
+melisa v0.4.1 | profile=quick | duration=10s
 
 Tier 1 (procfs)  ████████████████████████████████████████ 8/8   2.1s
 Tier 2 (BCC)     ████████████████████████████████████████ 4/4  10.3s
@@ -54,7 +54,7 @@ jq '.summary.recommendations[] | {type, title, commands}' report.json
 Рекомендации содержат готовые команды:
 
 ```bash
-# Пример: melisai рекомендует включить BBR
+# Пример: melisa рекомендует включить BBR
 sysctl -w net.core.default_qdisc=fq
 sysctl -w net.ipv4.tcp_congestion_control=bbr
 ```
@@ -63,8 +63,8 @@ sysctl -w net.ipv4.tcp_congestion_control=bbr
 
 ```bash
 # Запустить снова и сравнить
-sudo melisai collect --profile quick -o after.json
-melisai diff report.json after.json
+sudo melisa collect --profile quick -o after.json
+melisa diff report.json after.json
 ```
 
 Diff покажет что улучшилось, что ухудшилось, и дельту health score.
@@ -73,13 +73,13 @@ Diff покажет что улучшилось, что ухудшилось, и
 
 | Цель | Команда |
 |------|---------|
-| Полный анализ (все 67 BCC tools) | `sudo melisai collect --profile standard -o report.json` |
-| Глубокий анализ (стеки, memleak) | `sudo melisai collect --profile deep -o report.json` |
-| Только сеть | `sudo melisai collect --profile standard --focus network -o net.json` |
-| Конкретный процесс | `sudo melisai collect --profile standard --pid 12345 -o app.json` |
-| Контейнер | `sudo melisai collect --profile standard --cgroup /sys/fs/cgroup/.../nginx.service -o cg.json` |
-| Установить BCC tools | `sudo melisai install` |
-| Использовать с Claude/Cursor | `melisai mcp` → [гайд по MCP](13-ai-integration.md) |
+| Полный анализ (все 67 BCC tools) | `sudo melisa collect --profile standard -o report.json` |
+| Глубокий анализ (стеки, memleak) | `sudo melisa collect --profile deep -o report.json` |
+| Только сеть | `sudo melisa collect --profile standard --focus network -o net.json` |
+| Конкретный процесс | `sudo melisa collect --profile standard --pid 12345 -o app.json` |
+| Контейнер | `sudo melisa collect --profile standard --cgroup /sys/fs/cgroup/.../nginx.service -o cg.json` |
+| Установить BCC tools | `sudo melisa install` |
+| Использовать с Claude/Cursor | `melisa mcp` → [гайд по MCP](13-ai-integration.md) |
 
 ## Профили сбора
 
@@ -92,7 +92,7 @@ Diff покажет что улучшилось, что ухудшилось, и
 ## Справка по CLI
 
 ```
-melisai collect   Сбор метрик и генерация JSON-отчёта
+melisa collect   Сбор метрик и генерация JSON-отчёта
   --profile       quick|standard|deep (по умолчанию: standard)
   --focus         cpu,memory,disk,network,stacks
   --pid           Фильтр по PID
@@ -101,12 +101,12 @@ melisai collect   Сбор метрик и генерация JSON-отчёта
   --ai-prompt     Включить AI-промпт в отчёт
   --output, -o    Файл вывода (- для stdout)
 
-melisai diff      Сравнение двух отчётов
-melisai install   Установка BCC tools
-melisai mcp       MCP сервер (stdio JSON-RPC)
-melisai capabilities  Доступные инструменты и возможности ядра
+melisa diff      Сравнение двух отчётов
+melisa install   Установка BCC tools
+melisa mcp       MCP сервер (stdio JSON-RPC)
+melisa capabilities  Доступные инструменты и возможности ядра
 ```
 
 ---
 
-*Далее: [Введение — Как работает melisai](index.md)*
+*Далее: [Введение — Как работает melisa](index.md)*

@@ -4,7 +4,7 @@
 
 The CPU is the most fundamental resource. When it's overloaded, everything slows down. But "CPU is high" is not a diagnosis — you need to know **why** it's high and **what kind** of load it is.
 
-melisai's `CPUCollector` (`internal/collector/cpu.go`) answers these questions by reading `/proc/stat` twice and computing the delta.
+melisa's `CPUCollector` (`internal/collector/cpu.go`) answers these questions by reading `/proc/stat` twice and computing the delta.
 
 ## Source File: cpu.go
 
@@ -14,7 +14,7 @@ melisai's `CPUCollector` (`internal/collector/cpu.go`) answers these questions b
 
 ## The Collector Interface
 
-Every collector in melisai implements this interface:
+Every collector in melisa implements this interface:
 
 ```go
 type Collector interface {
@@ -253,7 +253,7 @@ func (c *CPUCollector) readLoadAvg() (float64, float64, float64) {
 | > 2.0 | Significant queuing — noticeable latency |
 | > 4.0 | Heavily overloaded |
 
-melisai normalizes load average by dividing by the number of CPUs:
+melisa normalizes load average by dividing by the number of CPUs:
 ```go
 ratio := cpu.LoadAvg1 / float64(cpu.NumCPUs)
 ```
@@ -267,7 +267,7 @@ The Completely Fair Scheduler (CFS) uses two parameters that affect latency:
 
 - **`sched_min_granularity_ns`** (default: 0.75ms): Minimum time a task runs before being preempted. Prevents excessive context switching.
 
-melisai reads these from:
+melisa reads these from:
 ```
 /proc/sys/kernel/sched_latency_ns
 /proc/sys/kernel/sched_min_granularity_ns
@@ -279,7 +279,7 @@ If `sched_latency_ns` is very high (e.g., 24ms on some cloud providers), schedul
 
 Every time the CPU switches from one process to another, it performs a **context switch**. The cost is typically 1-10 microseconds, but at very high rates (>100K/sec), the overhead becomes significant.
 
-melisai computes context switches **per second**:
+melisa computes context switches **per second**:
 ```go
 ctxSwDelta := ctxSw2 - ctxSw1
 data.ContextSwitchesPerSec = int64(float64(ctxSwDelta) / interval.Seconds())
