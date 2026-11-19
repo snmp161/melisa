@@ -38,6 +38,8 @@ The command writes a JSON report to `report.json` (`-o -` selects stdout). Total
 
 ## Quick Start
 
+[GitHub Releases](https://github.com/snmp161/melisa/releases) provides Linux `tar.gz` archives and DEB/RPM packages for amd64 and arm64. DEB packages target Debian and Ubuntu; RPM packages target AlmaLinux, Rocky Linux, and RHEL. Packages install the binary as `/usr/bin/melisa`.
+
 ```bash
 # Build (requires Go 1.27+, cross-compile from macOS/Linux)
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o melisa ./cmd/melisa/

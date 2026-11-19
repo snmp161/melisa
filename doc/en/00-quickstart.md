@@ -13,6 +13,8 @@ GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o melisa ./cmd/melisa/
 sudo mv melisa /usr/local/bin/
 ```
 
+Prebuilt Linux packages are available from [GitHub Releases](https://github.com/snmp161/melisa/releases): DEB for Debian/Ubuntu and RPM for AlmaLinux/Rocky Linux/RHEL, both for amd64 and arm64. Packages install the binary as `/usr/bin/melisa`.
+
 ## 2. Run Your First Scan
 
 ```bash

@@ -28,7 +28,7 @@ jobs:
       - name: Install BPF toolchain
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang llvm linux-tools-generic libbpf-dev
+          sudo apt-get install -y clang llvm linux-tools-generic libbpf-dev rpm
           if ! command -v bpftool >/dev/null 2>&1; then
             shopt -s nullglob
             candidates=(/usr/lib/linux-tools/*/bpftool)
@@ -62,13 +62,25 @@ jobs:
           version: "v2.20.2"
           args: release --clean --snapshot
 
-      - name: Verify snapshot archives
+      - name: Verify snapshot artifacts
         run: |
           set -euo pipefail
           for archive in dist/*.tar.gz; do
             contents="$(tar -tzf "$archive")"
             grep -Eq '(^|/)LICENSE$' <<<"$contents"
             grep -Eq '(^|/)NOTICE$' <<<"$contents"
+          done
+          for package in dist/*.deb; do
+            contents="$(dpkg-deb --contents "$package")"
+            grep -Eq '/usr/bin/melisa$' <<<"$contents"
+            grep -Eq '/usr/share/doc/melisa/LICENSE$' <<<"$contents"
+            grep -Eq '/usr/share/doc/melisa/NOTICE$' <<<"$contents"
+          done
+          for package in dist/*.rpm; do
+            contents="$(rpm -qlp "$package")"
+            grep -Eq '^/usr/bin/melisa$' <<<"$contents"
+            grep -Eq '^/usr/share/doc/melisa/LICENSE$' <<<"$contents"
+            grep -Eq '^/usr/share/doc/melisa/NOTICE$' <<<"$contents"
           done
 
       - name: Run GoReleaser

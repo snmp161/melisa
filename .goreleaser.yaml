@@ -10,7 +10,6 @@ builds:
       - CGO_ENABLED=0
     goos:
       - linux
-      - darwin
     goarch:
       - amd64
       - arm64
@@ -32,6 +31,23 @@ archives:
       {{- else if eq .Arch "386" }}i386
       {{- else }}{{ .Arch }}{{ end }}
       {{- if .Arm }}v{{ .Arm }}{{ end }}
+
+nfpms:
+  - package_name: melisa
+    file_name_template: "{{ .ConventionalFileName }}"
+    formats: [deb, rpm]
+    maintainer: Sergey Ovchinnikov <sovchinnikov@gmail.com>
+    homepage: https://github.com/snmp161/melisa
+    description: Single-binary Linux performance diagnostics via eBPF/BCC, built for humans and AI agents (MCP)
+    license: Apache-2.0
+    section: utils
+    priority: optional
+    bindir: /usr/bin
+    contents:
+      - src: LICENSE
+        dst: /usr/share/doc/melisa/LICENSE
+      - src: NOTICE
+        dst: /usr/share/doc/melisa/NOTICE
 
 checksum:
   name_template: "checksums.txt"

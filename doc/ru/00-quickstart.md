@@ -13,6 +13,8 @@ GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o melisa ./cmd/melisa/
 sudo mv melisa /usr/local/bin/
 ```
 
+Готовые Linux-пакеты доступны в [GitHub Releases](https://github.com/snmp161/melisa/releases): DEB для Debian/Ubuntu и RPM для AlmaLinux/Rocky Linux/RHEL, оба варианта для amd64 и arm64. Пакеты устанавливают бинарник в `/usr/bin/melisa`.
+
 ## 2. Первый запуск
 
 ```bash
