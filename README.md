@@ -4,7 +4,7 @@
 
 melisa is a point-in-time Linux performance diagnostic tool. It collects data through 8 procfs/sysfs collectors, a registry of 67 BCC tools, and one native eBPF collector, then produces a JSON report with raw measurements, threshold-based anomalies, a heuristic health score, and suggested tuning actions. It works as a standalone CLI or as an MCP server for interactive analysis.
 
-[![Go 1.25+](https://img.shields.io/badge/Go-1.25%2B-00ADD8?logo=go)](https://go.dev)
+[![Go 1.27+](https://img.shields.io/badge/Go-1.27%2B-00ADD8?logo=go)](https://go.dev)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![BCC Coverage](https://img.shields.io/badge/BCC_tools-67%2F80-green)](https://github.com/iovisor/bcc)
 [![Schema](https://img.shields.io/badge/schema-v1.1.0-blue)]()
@@ -39,7 +39,7 @@ The command writes a JSON report to `report.json` (`-o -` selects stdout). Total
 ## Quick Start
 
 ```bash
-# Build (requires Go 1.25+, cross-compile from macOS/Linux)
+# Build (requires Go 1.27+, cross-compile from macOS/Linux)
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o melisa ./cmd/melisa/
 
 # Deploy and run
@@ -288,7 +288,7 @@ internal/
 
 | | Minimum | Notes |
 |---|---|---|
-| **Build** | Go 1.25+ | Cross-compile: `GOOS=linux GOARCH=amd64` |
+| **Build** | Go 1.27+ | Cross-compile: `GOOS=linux GOARCH=amd64` |
 | **Tier 1** | Linux procfs/sysfs | Core reads usually need no root; external utilities and some metrics depend on permissions |
 | **Tier 2** | Root + bcc-tools | `sudo melisa install` handles installation; some distros also need kernel headers |
 | **Tier 3** | Root + kernel ≥ 5.8 with BTF | Falls back to Tier 2 when the native collector is unavailable |
