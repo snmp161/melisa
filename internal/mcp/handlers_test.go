@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/snmp161/melisa/internal/model"
 	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/snmp161/melisa/internal/model"
 )
 
 // --- getArgs / stringArg helpers ---

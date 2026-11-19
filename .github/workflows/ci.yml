@@ -6,10 +6,18 @@ on:
   pull_request:
     branches: ["develop", "master"]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     name: Test & Build
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
@@ -21,18 +29,31 @@ jobs:
       - name: Verify dependencies
         run: go mod verify
 
+      - name: Check formatting
+        run: make fmt-check
+
+      - name: Check module files
+        run: make tidy-check
+
       - name: Build
         run: go build -v ./...
 
       - name: Test
-        run: go test -v ./...
+        run: make test
 
       - name: Vet
-        run: go vet ./...
+        run: make vet
+
+      - name: Lint
+        run: make lint
+
+      - name: Vulnerability check
+        run: make vuln
 
   bpf-smoke:
     name: BPF object smoke build
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 

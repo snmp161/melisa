@@ -19,733 +19,733 @@ func DefaultThresholds() []Threshold { return defaultThresholds }
 // defaultThresholds is the singleton slice of anomaly rules, allocated once at
 // package init time to avoid re-creating 37 closures on every DetectAnomalies call.
 var defaultThresholds = []Threshold{
-		// CPU
-		{
-			Metric: "cpu_utilization", Category: "cpu",
-			Warning: 80, Critical: 95,
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["cpu"]; ok {
-					for _, res := range results {
-						if cpu, ok := res.Data.(*CPUData); ok {
-							return 100 - cpu.IdlePct, true
+	// CPU
+	{
+		Metric: "cpu_utilization", Category: "cpu",
+		Warning: 80, Critical: 95,
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["cpu"]; ok {
+				for _, res := range results {
+					if cpu, ok := res.Data.(*CPUData); ok {
+						return 100 - cpu.IdlePct, true
+					}
+				}
+			}
+			return 0, false
+		},
+		Message: func(v float64) string {
+			return fmt.Sprintf("CPU utilization at %.1f%%", v)
+		},
+	},
+	{
+		Metric: "cpu_iowait", Category: "cpu",
+		Warning: 10, Critical: 30,
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["cpu"]; ok {
+				for _, res := range results {
+					if cpu, ok := res.Data.(*CPUData); ok {
+						return cpu.IOWaitPct, true
+					}
+				}
+			}
+			return 0, false
+		},
+		Message: func(v float64) string {
+			return fmt.Sprintf("High CPU iowait: %.1f%% (CPUs blocked on I/O)", v)
+		},
+	},
+	{
+		Metric: "load_average", Category: "cpu",
+		Warning: 2.0, Critical: 4.0, // multiplied by NumCPU
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["cpu"]; ok {
+				for _, res := range results {
+					if cpu, ok := res.Data.(*CPUData); ok {
+						if cpu.NumCPUs > 0 {
+							return cpu.LoadAvg1 / float64(cpu.NumCPUs), true
 						}
 					}
 				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("CPU utilization at %.1f%%", v)
-			},
+			}
+			return 0, false
 		},
-		{
-			Metric: "cpu_iowait", Category: "cpu",
-			Warning: 10, Critical: 30,
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["cpu"]; ok {
-					for _, res := range results {
-						if cpu, ok := res.Data.(*CPUData); ok {
-							return cpu.IOWaitPct, true
+		Message: func(v float64) string {
+			return fmt.Sprintf("Load average per CPU: %.2f (saturation threshold: 1.0)", v)
+		},
+	},
+	// Memory
+	{
+		Metric: "memory_utilization", Category: "memory",
+		Warning: 85, Critical: 95,
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["memory"]; ok {
+				for _, res := range results {
+					if mem, ok := res.Data.(*MemoryData); ok {
+						if mem.TotalBytes > 0 {
+							return float64(mem.TotalBytes-mem.AvailableBytes) / float64(mem.TotalBytes) * 100, true
 						}
 					}
 				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("High CPU iowait: %.1f%% (CPUs blocked on I/O)", v)
-			},
+			}
+			return 0, false
 		},
-		{
-			Metric: "load_average", Category: "cpu",
-			Warning: 2.0, Critical: 4.0, // multiplied by NumCPU
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["cpu"]; ok {
-					for _, res := range results {
-						if cpu, ok := res.Data.(*CPUData); ok {
-							if cpu.NumCPUs > 0 {
-								return cpu.LoadAvg1 / float64(cpu.NumCPUs), true
+		Message: func(v float64) string {
+			return fmt.Sprintf("Memory utilization at %.1f%%", v)
+		},
+	},
+	{
+		Metric: "swap_usage", Category: "memory",
+		Warning: 10, Critical: 50,
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["memory"]; ok {
+				for _, res := range results {
+					if mem, ok := res.Data.(*MemoryData); ok {
+						if mem.SwapTotalBytes > 0 {
+							return float64(mem.SwapUsedBytes) / float64(mem.SwapTotalBytes) * 100, true
+						}
+					}
+				}
+			}
+			return 0, false
+		},
+		Message: func(v float64) string {
+			return fmt.Sprintf("Swap usage at %.1f%%", v)
+		},
+	},
+	{
+		Metric: "memory_psi_pressure", Category: "memory",
+		Warning: 5.0, Critical: 25.0,
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["memory"]; ok {
+				for _, res := range results {
+					if mem, ok := res.Data.(*MemoryData); ok {
+						if mem.PSISome10 > 0 {
+							return mem.PSISome10, true
+						}
+					}
+				}
+			}
+			return 0, false
+		},
+		Message: func(v float64) string {
+			return fmt.Sprintf("Memory PSI pressure: %.1f%% (some tasks stalling)", v)
+		},
+	},
+	// Direct reclaim rate (application-blocking page reclaim)
+	{
+		Metric: "direct_reclaim_rate", Category: "memory",
+		Warning: 10, Critical: 1000,
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["memory"]; ok {
+				for _, res := range results {
+					if mem, ok := res.Data.(*MemoryData); ok && mem.Reclaim != nil {
+						if mem.Reclaim.DirectReclaimRate > 0 {
+							return mem.Reclaim.DirectReclaimRate, true
+						}
+					}
+				}
+			}
+			return 0, false
+		},
+		Message: func(v float64) string {
+			return fmt.Sprintf("Direct reclaim: %.0f pages/s (applications blocked waiting for memory)", v)
+		},
+	},
+	// Compaction stall rate (allocation blocked on defragmentation)
+	{
+		Metric: "compaction_stall_rate", Category: "memory",
+		Warning: 1, Critical: 100,
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["memory"]; ok {
+				for _, res := range results {
+					if mem, ok := res.Data.(*MemoryData); ok && mem.Reclaim != nil {
+						if mem.Reclaim.CompactStallRate > 0 {
+							return mem.Reclaim.CompactStallRate, true
+						}
+					}
+				}
+			}
+			return 0, false
+		},
+		Message: func(v float64) string {
+			return fmt.Sprintf("Compaction stalls: %.1f/s (memory fragmented, allocation latency)", v)
+		},
+	},
+	// THP split rate (huge pages being broken apart — performance-killing)
+	{
+		Metric: "thp_split_rate", Category: "memory",
+		Warning: 1, Critical: 100,
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["memory"]; ok {
+				for _, res := range results {
+					if mem, ok := res.Data.(*MemoryData); ok && mem.Reclaim != nil {
+						if mem.Reclaim.THPSplitRate > 0 {
+							return mem.Reclaim.THPSplitRate, true
+						}
+					}
+				}
+			}
+			return 0, false
+		},
+		Message: func(v float64) string {
+			return fmt.Sprintf("THP splits: %.1f/s (huge pages breaking apart — TLB thrashing)", v)
+		},
+	},
+	// NUMA miss ratio (memory accessed from wrong node)
+	{
+		Metric: "numa_miss_ratio", Category: "memory",
+		Warning: 5, Critical: 20,
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["memory"]; ok {
+				for _, res := range results {
+					if mem, ok := res.Data.(*MemoryData); ok {
+						var maxMiss float64
+						for _, node := range mem.NUMANodes {
+							if node.MissRatio > maxMiss {
+								maxMiss = node.MissRatio
 							}
 						}
-					}
-				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("Load average per CPU: %.2f (saturation threshold: 1.0)", v)
-			},
-		},
-		// Memory
-		{
-			Metric: "memory_utilization", Category: "memory",
-			Warning: 85, Critical: 95,
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["memory"]; ok {
-					for _, res := range results {
-						if mem, ok := res.Data.(*MemoryData); ok {
-							if mem.TotalBytes > 0 {
-								return float64(mem.TotalBytes-mem.AvailableBytes) / float64(mem.TotalBytes) * 100, true
-							}
+						if maxMiss > 0 {
+							return maxMiss, true
 						}
 					}
 				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("Memory utilization at %.1f%%", v)
-			},
+			}
+			return 0, false
 		},
-		{
-			Metric: "swap_usage", Category: "memory",
-			Warning: 10, Critical: 50,
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["memory"]; ok {
-					for _, res := range results {
-						if mem, ok := res.Data.(*MemoryData); ok {
-							if mem.SwapTotalBytes > 0 {
-								return float64(mem.SwapUsedBytes) / float64(mem.SwapTotalBytes) * 100, true
-							}
+		Message: func(v float64) string {
+			return fmt.Sprintf("NUMA miss ratio: %.1f%% (cross-node memory access — 30-50%% latency penalty)", v)
+		},
+	},
+	// Network
+	{
+		Metric: "tcp_retransmits", Category: "network",
+		Warning: 10, Critical: 50, // rate per second
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["network"]; ok {
+				for _, res := range results {
+					if net, ok := res.Data.(*NetworkData); ok {
+						if net.TCP != nil {
+							return net.TCP.RetransRate, true
 						}
 					}
 				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("Swap usage at %.1f%%", v)
-			},
+			}
+			return 0, false
 		},
-		{
-			Metric: "memory_psi_pressure", Category: "memory",
-			Warning: 5.0, Critical: 25.0,
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["memory"]; ok {
-					for _, res := range results {
-						if mem, ok := res.Data.(*MemoryData); ok {
-							if mem.PSISome10 > 0 {
-								return mem.PSISome10, true
-							}
+		Message: func(v float64) string {
+			return fmt.Sprintf("TCP retransmit rate: %.1f/sec", v)
+		},
+	},
+	{
+		Metric: "tcp_timewait", Category: "network",
+		Warning: 5000, Critical: 20000,
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["network"]; ok {
+				for _, res := range results {
+					if net, ok := res.Data.(*NetworkData); ok {
+						if net.TCP != nil {
+							return float64(net.TCP.TimeWaitCount), true
 						}
 					}
 				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("Memory PSI pressure: %.1f%% (some tasks stalling)", v)
-			},
+			}
+			return 0, false
 		},
-		// Direct reclaim rate (application-blocking page reclaim)
-		{
-			Metric: "direct_reclaim_rate", Category: "memory",
-			Warning: 10, Critical: 1000,
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["memory"]; ok {
-					for _, res := range results {
-						if mem, ok := res.Data.(*MemoryData); ok && mem.Reclaim != nil {
-							if mem.Reclaim.DirectReclaimRate > 0 {
-								return mem.Reclaim.DirectReclaimRate, true
-							}
+		Message: func(v float64) string {
+			return fmt.Sprintf("TIME_WAIT connections: %.0f", v)
+		},
+	},
+	// Disk
+	{
+		Metric: "disk_utilization", Category: "disk",
+		Warning: 70, Critical: 90,
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["disk"]; ok {
+				for _, res := range results {
+					if disk, ok := res.Data.(*DiskData); ok {
+						return computeDiskUtilization(disk), true
+					}
+				}
+			}
+			return 0, false
+		},
+		Message: func(v float64) string {
+			return fmt.Sprintf("Disk utilization: %.1f%%", v)
+		},
+	},
+	// Container-specific
+	{
+		Metric: "cpu_throttling", Category: "container",
+		Warning: 100, Critical: 1000,
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["container"]; ok {
+				for _, res := range results {
+					if c, ok := res.Data.(*ContainerData); ok {
+						return float64(c.CPUThrottledPeriods), true
+					}
+				}
+			}
+			return 0, false
+		},
+		Message: func(v float64) string {
+			return fmt.Sprintf("CPU throttled periods: %.0f (container CPU limit hit)", v)
+		},
+	},
+	{
+		Metric: "container_memory_usage", Category: "container",
+		Warning: 80, Critical: 95,
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["container"]; ok {
+				for _, res := range results {
+					if c, ok := res.Data.(*ContainerData); ok {
+						if c.MemoryLimit > 0 {
+							return float64(c.MemoryUsage) / float64(c.MemoryLimit) * 100, true
 						}
 					}
 				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("Direct reclaim: %.0f pages/s (applications blocked waiting for memory)", v)
-			},
+			}
+			return 0, false
 		},
-		// Compaction stall rate (allocation blocked on defragmentation)
-		{
-			Metric: "compaction_stall_rate", Category: "memory",
-			Warning: 1, Critical: 100,
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["memory"]; ok {
-					for _, res := range results {
-						if mem, ok := res.Data.(*MemoryData); ok && mem.Reclaim != nil {
-							if mem.Reclaim.CompactStallRate > 0 {
-								return mem.Reclaim.CompactStallRate, true
-							}
-						}
-					}
-				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("Compaction stalls: %.1f/s (memory fragmented, allocation latency)", v)
-			},
+		Message: func(v float64) string {
+			return fmt.Sprintf("Container memory: %.1f%% of limit (OOM risk)", v)
 		},
-		// THP split rate (huge pages being broken apart — performance-killing)
-		{
-			Metric: "thp_split_rate", Category: "memory",
-			Warning: 1, Critical: 100,
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["memory"]; ok {
-					for _, res := range results {
-						if mem, ok := res.Data.(*MemoryData); ok && mem.Reclaim != nil {
-							if mem.Reclaim.THPSplitRate > 0 {
-								return mem.Reclaim.THPSplitRate, true
-							}
-						}
-					}
-				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("THP splits: %.1f/s (huge pages breaking apart — TLB thrashing)", v)
-			},
+	},
+	// Tier 2 histogram-based thresholds (biolatency, runqlat, gethostlatency, cachestat)
+	{
+		Metric: "biolatency_p99_ssd", Category: "disk",
+		Warning: 5, Critical: 25, // milliseconds
+		Evaluator: histogramP99Evaluator("biolatency", false),
+		Message: func(v float64) string {
+			return fmt.Sprintf("Block I/O p99 latency (SSD): %.1fms", v)
 		},
-		// NUMA miss ratio (memory accessed from wrong node)
-		{
-			Metric: "numa_miss_ratio", Category: "memory",
-			Warning: 5, Critical: 20,
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["memory"]; ok {
-					for _, res := range results {
-						if mem, ok := res.Data.(*MemoryData); ok {
-							var maxMiss float64
-							for _, node := range mem.NUMANodes {
-								if node.MissRatio > maxMiss {
-									maxMiss = node.MissRatio
-								}
-							}
-							if maxMiss > 0 {
-								return maxMiss, true
-							}
-						}
-					}
-				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("NUMA miss ratio: %.1f%% (cross-node memory access — 30-50%% latency penalty)", v)
-			},
+	},
+	{
+		Metric: "biolatency_p99_hdd", Category: "disk",
+		Warning: 50, Critical: 200, // milliseconds
+		Evaluator: histogramP99Evaluator("biolatency", true),
+		Message: func(v float64) string {
+			return fmt.Sprintf("Block I/O p99 latency (HDD): %.1fms", v)
 		},
-		// Network
-		{
-			Metric: "tcp_retransmits", Category: "network",
-			Warning: 10, Critical: 50, // rate per second
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["network"]; ok {
-					for _, res := range results {
-						if net, ok := res.Data.(*NetworkData); ok {
-							if net.TCP != nil {
-								return net.TCP.RetransRate, true
-							}
-						}
-					}
-				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("TCP retransmit rate: %.1f/sec", v)
-			},
+	},
+	{
+		Metric: "runqlat_p99", Category: "cpu",
+		Warning: 10, Critical: 50, // milliseconds
+		Evaluator: histogramP99Evaluator("runqlat", false),
+		Message: func(v float64) string {
+			return fmt.Sprintf("Run queue latency p99: %.1fms (scheduler delay)", v)
 		},
-		{
-			Metric: "tcp_timewait", Category: "network",
-			Warning: 5000, Critical: 20000,
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["network"]; ok {
-					for _, res := range results {
-						if net, ok := res.Data.(*NetworkData); ok {
-							if net.TCP != nil {
-								return float64(net.TCP.TimeWaitCount), true
-							}
-						}
-					}
-				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("TIME_WAIT connections: %.0f", v)
-			},
+	},
+	{
+		Metric: "dns_latency_p99", Category: "network",
+		Warning: 50, Critical: 200, // milliseconds
+		Evaluator: histogramP99Evaluator("gethostlatency", false),
+		Message: func(v float64) string {
+			return fmt.Sprintf("DNS lookup latency p99: %.1fms", v)
 		},
-		// Disk
-		{
-			Metric: "disk_utilization", Category: "disk",
-			Warning: 70, Critical: 90,
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["disk"]; ok {
-					for _, res := range results {
-						if disk, ok := res.Data.(*DiskData); ok {
-							return computeDiskUtilization(disk), true
-						}
-					}
-				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("Disk utilization: %.1f%%", v)
-			},
-		},
-		// Container-specific
-		{
-			Metric: "cpu_throttling", Category: "container",
-			Warning: 100, Critical: 1000,
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["container"]; ok {
-					for _, res := range results {
-						if c, ok := res.Data.(*ContainerData); ok {
-							return float64(c.CPUThrottledPeriods), true
-						}
-					}
-				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("CPU throttled periods: %.0f (container CPU limit hit)", v)
-			},
-		},
-		{
-			Metric: "container_memory_usage", Category: "container",
-			Warning: 80, Critical: 95,
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["container"]; ok {
-					for _, res := range results {
-						if c, ok := res.Data.(*ContainerData); ok {
-							if c.MemoryLimit > 0 {
-								return float64(c.MemoryUsage) / float64(c.MemoryLimit) * 100, true
-							}
-						}
-					}
-				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("Container memory: %.1f%% of limit (OOM risk)", v)
-			},
-		},
-		// Tier 2 histogram-based thresholds (biolatency, runqlat, gethostlatency, cachestat)
-		{
-			Metric: "biolatency_p99_ssd", Category: "disk",
-			Warning: 5, Critical: 25, // milliseconds
-			Evaluator: histogramP99Evaluator("biolatency", false),
-			Message: func(v float64) string {
-				return fmt.Sprintf("Block I/O p99 latency (SSD): %.1fms", v)
-			},
-		},
-		{
-			Metric: "biolatency_p99_hdd", Category: "disk",
-			Warning: 50, Critical: 200, // milliseconds
-			Evaluator: histogramP99Evaluator("biolatency", true),
-			Message: func(v float64) string {
-				return fmt.Sprintf("Block I/O p99 latency (HDD): %.1fms", v)
-			},
-		},
-		{
-			Metric: "runqlat_p99", Category: "cpu",
-			Warning: 10, Critical: 50, // milliseconds
-			Evaluator: histogramP99Evaluator("runqlat", false),
-			Message: func(v float64) string {
-				return fmt.Sprintf("Run queue latency p99: %.1fms (scheduler delay)", v)
-			},
-		},
-		{
-			Metric: "dns_latency_p99", Category: "network",
-			Warning: 50, Critical: 200, // milliseconds
-			Evaluator: histogramP99Evaluator("gethostlatency", false),
-			Message: func(v float64) string {
-				return fmt.Sprintf("DNS lookup latency p99: %.1fms", v)
-			},
-		},
-		{
-			Metric: "cache_miss_ratio", Category: "memory",
-			Warning: 5, Critical: 15, // percentage
-			Evaluator: func(r *Report) (float64, bool) {
-				for _, results := range r.Categories {
-					for _, res := range results {
-						if res.Collector == "cachestat" {
-							for _, h := range res.Histograms {
-								if h.Name == "cache_miss_ratio" {
-									return h.Mean, true
-								}
-							}
-						}
-					}
-				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("Page cache miss ratio: %.1f%%", v)
-			},
-		},
-		// PSI thresholds (CPU and I/O)
-		{
-			Metric: "cpu_psi_pressure", Category: "cpu",
-			Warning: 5.0, Critical: 25.0,
-			Evaluator: func(r *Report) (float64, bool) {
-				// CPU PSI is read from /proc/pressure/cpu
-				if results, ok := r.Categories["cpu"]; ok {
-					for _, res := range results {
-						if cpu, ok := res.Data.(*CPUData); ok {
-							if cpu.PSISome10 > 0 {
-								return cpu.PSISome10, true
+	},
+	{
+		Metric: "cache_miss_ratio", Category: "memory",
+		Warning: 5, Critical: 15, // percentage
+		Evaluator: func(r *Report) (float64, bool) {
+			for _, results := range r.Categories {
+				for _, res := range results {
+					if res.Collector == "cachestat" {
+						for _, h := range res.Histograms {
+							if h.Name == "cache_miss_ratio" {
+								return h.Mean, true
 							}
 						}
 					}
 				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("CPU PSI pressure: %.1f%% (some tasks stalling on CPU)", v)
-			},
+			}
+			return 0, false
 		},
-		{
-			Metric: "io_psi_pressure", Category: "disk",
-			Warning: 10.0, Critical: 50.0,
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["disk"]; ok {
-					for _, res := range results {
-						if disk, ok := res.Data.(*DiskData); ok {
-							if disk.PSISome10 > 0 {
-								return disk.PSISome10, true
-							}
+		Message: func(v float64) string {
+			return fmt.Sprintf("Page cache miss ratio: %.1f%%", v)
+		},
+	},
+	// PSI thresholds (CPU and I/O)
+	{
+		Metric: "cpu_psi_pressure", Category: "cpu",
+		Warning: 5.0, Critical: 25.0,
+		Evaluator: func(r *Report) (float64, bool) {
+			// CPU PSI is read from /proc/pressure/cpu
+			if results, ok := r.Categories["cpu"]; ok {
+				for _, res := range results {
+					if cpu, ok := res.Data.(*CPUData); ok {
+						if cpu.PSISome10 > 0 {
+							return cpu.PSISome10, true
 						}
 					}
 				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("I/O PSI pressure: %.1f%% (tasks stalling on I/O)", v)
-			},
+			}
+			return 0, false
 		},
-		// Disk average latency
-		{
-			Metric: "disk_avg_latency", Category: "disk",
-			Warning: 5, Critical: 50, // ms; conservative for mixed SSD/HDD
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["disk"]; ok {
-					for _, res := range results {
-						if disk, ok := res.Data.(*DiskData); ok {
-							var maxLat float64
-							for _, dev := range disk.Devices {
-								if dev.AvgLatencyMs > maxLat {
-									maxLat = dev.AvgLatencyMs
-								}
-							}
-							if maxLat > 0 {
-								return maxLat, true
-							}
+		Message: func(v float64) string {
+			return fmt.Sprintf("CPU PSI pressure: %.1f%% (some tasks stalling on CPU)", v)
+		},
+	},
+	{
+		Metric: "io_psi_pressure", Category: "disk",
+		Warning: 10.0, Critical: 50.0,
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["disk"]; ok {
+				for _, res := range results {
+					if disk, ok := res.Data.(*DiskData); ok {
+						if disk.PSISome10 > 0 {
+							return disk.PSISome10, true
 						}
 					}
 				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("Disk average I/O latency: %.1fms", v)
-			},
+			}
+			return 0, false
 		},
-		// Network errors per second
-		{
-			Metric: "network_errors_per_sec", Category: "network",
-			Warning: 10, Critical: 100,
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["network"]; ok {
-					for _, res := range results {
-						if net, ok := res.Data.(*NetworkData); ok {
-							var maxRate float64
-							for _, iface := range net.Interfaces {
-								if iface.ErrorsPerSec > maxRate {
-									maxRate = iface.ErrorsPerSec
-								}
+		Message: func(v float64) string {
+			return fmt.Sprintf("I/O PSI pressure: %.1f%% (tasks stalling on I/O)", v)
+		},
+	},
+	// Disk average latency
+	{
+		Metric: "disk_avg_latency", Category: "disk",
+		Warning: 5, Critical: 50, // ms; conservative for mixed SSD/HDD
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["disk"]; ok {
+				for _, res := range results {
+					if disk, ok := res.Data.(*DiskData); ok {
+						var maxLat float64
+						for _, dev := range disk.Devices {
+							if dev.AvgLatencyMs > maxLat {
+								maxLat = dev.AvgLatencyMs
 							}
-							if maxRate > 0 {
-								return maxRate, true
-							}
+						}
+						if maxLat > 0 {
+							return maxLat, true
 						}
 					}
 				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("Network errors: %.1f/sec", v)
-			},
+			}
+			return 0, false
 		},
-		// Conntrack table usage
-		{
-			Metric: "conntrack_usage_pct", Category: "network",
-			Warning: 70, Critical: 90,
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["network"]; ok {
-					for _, res := range results {
-						if net, ok := res.Data.(*NetworkData); ok {
-							if net.Conntrack != nil && net.Conntrack.Max > 0 {
-								return net.Conntrack.UsagePct, true
+		Message: func(v float64) string {
+			return fmt.Sprintf("Disk average I/O latency: %.1fms", v)
+		},
+	},
+	// Network errors per second
+	{
+		Metric: "network_errors_per_sec", Category: "network",
+		Warning: 10, Critical: 100,
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["network"]; ok {
+				for _, res := range results {
+					if net, ok := res.Data.(*NetworkData); ok {
+						var maxRate float64
+						for _, iface := range net.Interfaces {
+							if iface.ErrorsPerSec > maxRate {
+								maxRate = iface.ErrorsPerSec
 							}
+						}
+						if maxRate > 0 {
+							return maxRate, true
 						}
 					}
 				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("Conntrack table usage: %.1f%%", v)
-			},
+			}
+			return 0, false
 		},
-		// Softnet drops rate (packets dropped by kernel network stack per second)
-		{
-			Metric: "softnet_dropped", Category: "network",
-			Warning: 1, Critical: 100,
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["network"]; ok {
-					for _, res := range results {
-						if net, ok := res.Data.(*NetworkData); ok && net.Softnet != nil {
-							if net.Softnet.DropRate > 0 {
-								return net.Softnet.DropRate, true
-							}
+		Message: func(v float64) string {
+			return fmt.Sprintf("Network errors: %.1f/sec", v)
+		},
+	},
+	// Conntrack table usage
+	{
+		Metric: "conntrack_usage_pct", Category: "network",
+		Warning: 70, Critical: 90,
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["network"]; ok {
+				for _, res := range results {
+					if net, ok := res.Data.(*NetworkData); ok {
+						if net.Conntrack != nil && net.Conntrack.Max > 0 {
+							return net.Conntrack.UsagePct, true
 						}
 					}
 				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("Softnet packets dropped: %.1f/s (kernel can't keep up with NIC)", v)
-			},
+			}
+			return 0, false
 		},
-		// Listen overflows rate (accept queue full per second)
-		{
-			Metric: "listen_overflows", Category: "network",
-			Warning: 1, Critical: 100,
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["network"]; ok {
-					for _, res := range results {
-						if net, ok := res.Data.(*NetworkData); ok && net.TCPExt != nil {
-							if net.TCPExt.ListenOverflowRate > 0 {
-								return net.TCPExt.ListenOverflowRate, true
-							}
+		Message: func(v float64) string {
+			return fmt.Sprintf("Conntrack table usage: %.1f%%", v)
+		},
+	},
+	// Softnet drops rate (packets dropped by kernel network stack per second)
+	{
+		Metric: "softnet_dropped", Category: "network",
+		Warning: 1, Critical: 100,
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["network"]; ok {
+				for _, res := range results {
+					if net, ok := res.Data.(*NetworkData); ok && net.Softnet != nil {
+						if net.Softnet.DropRate > 0 {
+							return net.Softnet.DropRate, true
 						}
 					}
 				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("Listen queue overflows: %.1f/s (backlog too small or missing reuseport)", v)
-			},
+			}
+			return 0, false
 		},
-		// NIC RX discards (ring buffer overflow)
-		{
-			Metric: "nic_rx_discards", Category: "network",
-			Warning: 100, Critical: 10000,
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["network"]; ok {
-					for _, res := range results {
-						if net, ok := res.Data.(*NetworkData); ok {
-							var maxDiscards int64
-							for _, iface := range net.Interfaces {
-								if iface.RxDiscards > maxDiscards {
-									maxDiscards = iface.RxDiscards
-								}
-							}
-							if maxDiscards > 0 {
-								return float64(maxDiscards), true
-							}
+		Message: func(v float64) string {
+			return fmt.Sprintf("Softnet packets dropped: %.1f/s (kernel can't keep up with NIC)", v)
+		},
+	},
+	// Listen overflows rate (accept queue full per second)
+	{
+		Metric: "listen_overflows", Category: "network",
+		Warning: 1, Critical: 100,
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["network"]; ok {
+				for _, res := range results {
+					if net, ok := res.Data.(*NetworkData); ok && net.TCPExt != nil {
+						if net.TCPExt.ListenOverflowRate > 0 {
+							return net.TCPExt.ListenOverflowRate, true
 						}
 					}
 				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("NIC RX discards: %.0f (ring buffer overflow — increase with ethtool -G)", v)
-			},
+			}
+			return 0, false
 		},
-		// CLOSE_WAIT sockets (application not closing connections)
-		{
-			Metric: "tcp_close_wait", Category: "network",
-			Warning: 1, Critical: 100,
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["network"]; ok {
-					for _, res := range results {
-						if net, ok := res.Data.(*NetworkData); ok && net.TCP != nil {
-							if net.TCP.CloseWaitCount > 0 {
-								return float64(net.TCP.CloseWaitCount), true
+		Message: func(v float64) string {
+			return fmt.Sprintf("Listen queue overflows: %.1f/s (backlog too small or missing reuseport)", v)
+		},
+	},
+	// NIC RX discards (ring buffer overflow)
+	{
+		Metric: "nic_rx_discards", Category: "network",
+		Warning: 100, Critical: 10000,
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["network"]; ok {
+				for _, res := range results {
+					if net, ok := res.Data.(*NetworkData); ok {
+						var maxDiscards int64
+						for _, iface := range net.Interfaces {
+							if iface.RxDiscards > maxDiscards {
+								maxDiscards = iface.RxDiscards
 							}
+						}
+						if maxDiscards > 0 {
+							return float64(maxDiscards), true
 						}
 					}
 				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("CLOSE_WAIT sockets: %.0f (application not closing connections after remote FIN)", v)
-			},
+			}
+			return 0, false
 		},
-		// Softnet time squeeze rate (NAPI budget exhausted per second)
-		{
-			Metric: "softnet_time_squeeze", Category: "network",
-			Warning: 1, Critical: 100,
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["network"]; ok {
-					for _, res := range results {
-						if net, ok := res.Data.(*NetworkData); ok && net.Softnet != nil {
-							if net.Softnet.SqueezeRate > 0 {
-								return net.Softnet.SqueezeRate, true
-							}
+		Message: func(v float64) string {
+			return fmt.Sprintf("NIC RX discards: %.0f (ring buffer overflow — increase with ethtool -G)", v)
+		},
+	},
+	// CLOSE_WAIT sockets (application not closing connections)
+	{
+		Metric: "tcp_close_wait", Category: "network",
+		Warning: 1, Critical: 100,
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["network"]; ok {
+				for _, res := range results {
+					if net, ok := res.Data.(*NetworkData); ok && net.TCP != nil {
+						if net.TCP.CloseWaitCount > 0 {
+							return float64(net.TCP.CloseWaitCount), true
 						}
 					}
 				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("Softnet time_squeeze: %.1f/s (NAPI budget exhausted — increase netdev_budget)", v)
-			},
+			}
+			return 0, false
 		},
-		// TCPAbortOnMemory rate (connections aborted per second due to memory pressure)
-		{
-			Metric: "tcp_abort_on_memory", Category: "network",
-			Warning: 0.1, Critical: 1,
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["network"]; ok {
-					for _, res := range results {
-						if net, ok := res.Data.(*NetworkData); ok && net.TCPExt != nil {
-							if net.TCPExt.TCPAbortMemRate > 0 {
-								return net.TCPExt.TCPAbortMemRate, true
-							}
+		Message: func(v float64) string {
+			return fmt.Sprintf("CLOSE_WAIT sockets: %.0f (application not closing connections after remote FIN)", v)
+		},
+	},
+	// Softnet time squeeze rate (NAPI budget exhausted per second)
+	{
+		Metric: "softnet_time_squeeze", Category: "network",
+		Warning: 1, Critical: 100,
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["network"]; ok {
+				for _, res := range results {
+					if net, ok := res.Data.(*NetworkData); ok && net.Softnet != nil {
+						if net.Softnet.SqueezeRate > 0 {
+							return net.Softnet.SqueezeRate, true
 						}
 					}
 				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("TCPAbortOnMemory: %.2f/s (connections killed by kernel due to TCP memory pressure)", v)
-			},
+			}
+			return 0, false
 		},
-		// IRQ imbalance (uneven NET_RX distribution across CPUs)
-		{
-			Metric: "irq_imbalance", Category: "network",
-			Warning: 5, Critical: 20,
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["network"]; ok {
-					for _, res := range results {
-						if net, ok := res.Data.(*NetworkData); ok && net.Softnet != nil && len(net.Softnet.IRQDistribution) > 1 {
-							var maxDelta, minDelta int64
-							minDelta = net.Softnet.IRQDistribution[0].NetRxDelta
-							for _, d := range net.Softnet.IRQDistribution {
-								if d.NetRxDelta > maxDelta {
-									maxDelta = d.NetRxDelta
-								}
-								if d.NetRxDelta < minDelta {
-									minDelta = d.NetRxDelta
-								}
-							}
-							// Skip if traffic is too low to be meaningful
-							if maxDelta < 100 {
-								return 0, false
-							}
-							if minDelta > 0 {
-								ratio := float64(maxDelta) / float64(minDelta)
-								return ratio, true
-							}
-							// min is 0 but max >= 100 — extreme imbalance
-							return float64(maxDelta), true
+		Message: func(v float64) string {
+			return fmt.Sprintf("Softnet time_squeeze: %.1f/s (NAPI budget exhausted — increase netdev_budget)", v)
+		},
+	},
+	// TCPAbortOnMemory rate (connections aborted per second due to memory pressure)
+	{
+		Metric: "tcp_abort_on_memory", Category: "network",
+		Warning: 0.1, Critical: 1,
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["network"]; ok {
+				for _, res := range results {
+					if net, ok := res.Data.(*NetworkData); ok && net.TCPExt != nil {
+						if net.TCPExt.TCPAbortMemRate > 0 {
+							return net.TCPExt.TCPAbortMemRate, true
 						}
 					}
 				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("IRQ imbalance: max/min ratio %.1fx (enable RPS or configure IRQ affinity)", v)
-			},
+			}
+			return 0, false
 		},
-		// UDP receive buffer error rate (drops per second)
-		{
-			Metric: "udp_rcvbuf_errors", Category: "network",
-			Warning: 1, Critical: 100,
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["network"]; ok {
-					for _, res := range results {
-						if net, ok := res.Data.(*NetworkData); ok && net.UDP != nil {
-							if net.UDP.RcvbufErrRate > 0 {
-								return net.UDP.RcvbufErrRate, true
+		Message: func(v float64) string {
+			return fmt.Sprintf("TCPAbortOnMemory: %.2f/s (connections killed by kernel due to TCP memory pressure)", v)
+		},
+	},
+	// IRQ imbalance (uneven NET_RX distribution across CPUs)
+	{
+		Metric: "irq_imbalance", Category: "network",
+		Warning: 5, Critical: 20,
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["network"]; ok {
+				for _, res := range results {
+					if net, ok := res.Data.(*NetworkData); ok && net.Softnet != nil && len(net.Softnet.IRQDistribution) > 1 {
+						var maxDelta, minDelta int64
+						minDelta = net.Softnet.IRQDistribution[0].NetRxDelta
+						for _, d := range net.Softnet.IRQDistribution {
+							if d.NetRxDelta > maxDelta {
+								maxDelta = d.NetRxDelta
 							}
+							if d.NetRxDelta < minDelta {
+								minDelta = d.NetRxDelta
+							}
+						}
+						// Skip if traffic is too low to be meaningful
+						if maxDelta < 100 {
+							return 0, false
+						}
+						if minDelta > 0 {
+							ratio := float64(maxDelta) / float64(minDelta)
+							return ratio, true
+						}
+						// min is 0 but max >= 100 — extreme imbalance
+						return float64(maxDelta), true
+					}
+				}
+			}
+			return 0, false
+		},
+		Message: func(v float64) string {
+			return fmt.Sprintf("IRQ imbalance: max/min ratio %.1fx (enable RPS or configure IRQ affinity)", v)
+		},
+	},
+	// UDP receive buffer error rate (drops per second)
+	{
+		Metric: "udp_rcvbuf_errors", Category: "network",
+		Warning: 1, Critical: 100,
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["network"]; ok {
+				for _, res := range results {
+					if net, ok := res.Data.(*NetworkData); ok && net.UDP != nil {
+						if net.UDP.RcvbufErrRate > 0 {
+							return net.UDP.RcvbufErrRate, true
 						}
 					}
 				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("UDP receive buffer errors: %.1f/s (increase rmem_max and application SO_RCVBUF)", v)
-			},
+			}
+			return 0, false
 		},
-		// TCP Recv-Q drops (application not reading ESTABLISHED sockets fast enough)
-		{
-			Metric: "tcp_rcvq_drop", Category: "network",
-			Warning: 1, Critical: 100,
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["network"]; ok {
-					for _, res := range results {
-						if net, ok := res.Data.(*NetworkData); ok && net.TCPExt != nil {
-							if net.TCPExt.TCPRcvQDropRate > 0 {
-								return net.TCPExt.TCPRcvQDropRate, true
-							}
+		Message: func(v float64) string {
+			return fmt.Sprintf("UDP receive buffer errors: %.1f/s (increase rmem_max and application SO_RCVBUF)", v)
+		},
+	},
+	// TCP Recv-Q drops (application not reading ESTABLISHED sockets fast enough)
+	{
+		Metric: "tcp_rcvq_drop", Category: "network",
+		Warning: 1, Critical: 100,
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["network"]; ok {
+				for _, res := range results {
+					if net, ok := res.Data.(*NetworkData); ok && net.TCPExt != nil {
+						if net.TCPExt.TCPRcvQDropRate > 0 {
+							return net.TCPExt.TCPRcvQDropRate, true
 						}
 					}
 				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("TCP Recv-Q drops: %.1f/s (application not reading from sockets fast enough)", v)
-			},
+			}
+			return 0, false
 		},
-		// TCP Zero Window drops
-		{
-			Metric: "tcp_zero_window_drop", Category: "network",
-			Warning: 1, Critical: 50,
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["network"]; ok {
-					for _, res := range results {
-						if net, ok := res.Data.(*NetworkData); ok && net.TCPExt != nil {
-							if net.TCPExt.TCPZeroWindowDropRate > 0 {
-								return net.TCPExt.TCPZeroWindowDropRate, true
-							}
+		Message: func(v float64) string {
+			return fmt.Sprintf("TCP Recv-Q drops: %.1f/s (application not reading from sockets fast enough)", v)
+		},
+	},
+	// TCP Zero Window drops
+	{
+		Metric: "tcp_zero_window_drop", Category: "network",
+		Warning: 1, Critical: 50,
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["network"]; ok {
+				for _, res := range results {
+					if net, ok := res.Data.(*NetworkData); ok && net.TCPExt != nil {
+						if net.TCPExt.TCPZeroWindowDropRate > 0 {
+							return net.TCPExt.TCPZeroWindowDropRate, true
 						}
 					}
 				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("TCP zero-window drops: %.1f/s (receiver advertised window=0, app not consuming data)", v)
-			},
+			}
+			return 0, false
 		},
-		// Listen queue saturation (accept queue filling up)
-		{
-			Metric: "listen_queue_saturation", Category: "network",
-			Warning: 70, Critical: 90,
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["network"]; ok {
-					for _, res := range results {
-						if net, ok := res.Data.(*NetworkData); ok {
-							var maxFill float64
-							for _, ls := range net.ListenSockets {
-								if ls.FillPct > maxFill {
-									maxFill = ls.FillPct
-								}
+		Message: func(v float64) string {
+			return fmt.Sprintf("TCP zero-window drops: %.1f/s (receiver advertised window=0, app not consuming data)", v)
+		},
+	},
+	// Listen queue saturation (accept queue filling up)
+	{
+		Metric: "listen_queue_saturation", Category: "network",
+		Warning: 70, Critical: 90,
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["network"]; ok {
+				for _, res := range results {
+					if net, ok := res.Data.(*NetworkData); ok {
+						var maxFill float64
+						for _, ls := range net.ListenSockets {
+							if ls.FillPct > maxFill {
+								maxFill = ls.FillPct
 							}
-							if maxFill > 0 {
-								return maxFill, true
-							}
+						}
+						if maxFill > 0 {
+							return maxFill, true
 						}
 					}
 				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("Listen queue fill: %.0f%% (accept queue near capacity — add SO_REUSEPORT or more worker threads)", v)
-			},
+			}
+			return 0, false
 		},
-		// GPU-NIC cross-NUMA (PCIe topology mismatch)
-		{
-			Metric: "gpu_nic_cross_numa", Category: "system",
-			Warning: 1, Critical: 1,
-			Evaluator: func(r *Report) (float64, bool) {
-				if results, ok := r.Categories["system"]; ok {
-					for _, res := range results {
-						if topo, ok := res.Data.(*PCIeTopology); ok {
-							if len(topo.CrossNUMAPairs) > 0 {
-								return float64(len(topo.CrossNUMAPairs)), true
-							}
+		Message: func(v float64) string {
+			return fmt.Sprintf("Listen queue fill: %.0f%% (accept queue near capacity — add SO_REUSEPORT or more worker threads)", v)
+		},
+	},
+	// GPU-NIC cross-NUMA (PCIe topology mismatch)
+	{
+		Metric: "gpu_nic_cross_numa", Category: "system",
+		Warning: 1, Critical: 1,
+		Evaluator: func(r *Report) (float64, bool) {
+			if results, ok := r.Categories["system"]; ok {
+				for _, res := range results {
+					if topo, ok := res.Data.(*PCIeTopology); ok {
+						if len(topo.CrossNUMAPairs) > 0 {
+							return float64(len(topo.CrossNUMAPairs)), true
 						}
 					}
 				}
-				return 0, false
-			},
-			Message: func(v float64) string {
-				return fmt.Sprintf("GPU-NIC cross-NUMA: %.0f pair(s) on different NUMA nodes (PCIe DMA penalty)", v)
-			},
+			}
+			return 0, false
 		},
+		Message: func(v float64) string {
+			return fmt.Sprintf("GPU-NIC cross-NUMA: %.0f pair(s) on different NUMA nodes (PCIe DMA penalty)", v)
+		},
+	},
 }
 
 // histogramP99Evaluator returns an evaluator that searches for histograms

@@ -30,13 +30,14 @@ type LoadedProgram struct {
 
 // Close cleans up resources.
 func (p *LoadedProgram) Close() error {
+	var err error
 	if p.Link != nil {
-		p.Link.Close()
+		err = p.Link.Close()
 	}
 	if p.Collection != nil {
 		p.Collection.Close()
 	}
-	return nil
+	return err
 }
 
 // Loader handles loading and unloading native eBPF programs.

@@ -319,7 +319,7 @@ func TestEventBasedToolsNoArgs(t *testing.T) {
 		"tcpconnect", "tcpaccept", "tcplife", "udpconnect", "sofdsnoop",
 		"skbdrop", "shmsnoop", "drsnoop", "numamove",
 		// Positional arg is filter threshold, not duration
-		"tcpconnlat",    // arg = min_ms filter
+		"tcpconnlat",     // arg = min_ms filter
 		"gethostlatency", // no positional args
 	}
 

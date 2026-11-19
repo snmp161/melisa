@@ -474,12 +474,12 @@ func GenerateRecommendations(report *Report) []Recommendation {
 				}
 				hasSqueeze := false
 				if net.Softnet != nil {
-				for _, s := range net.Softnet.Stats {
-					if s.TimeSqueeze > 0 {
-						hasSqueeze = true
-						break
+					for _, s := range net.Softnet.Stats {
+						if s.TimeSqueeze > 0 {
+							hasSqueeze = true
+							break
+						}
 					}
-				}
 				}
 				if hasSqueeze && sc.NetdevBudget > 0 && sc.NetdevBudget < 600 {
 					recs = append(recs, Recommendation{

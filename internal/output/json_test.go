@@ -70,7 +70,9 @@ func TestWriteJSONStdout(t *testing.T) {
 
 	err := WriteJSON(report, "-")
 
-	w.Close()
+	if err := w.Close(); err != nil {
+		t.Fatalf("close stdout writer: %v", err)
+	}
 	os.Stdout = oldStdout
 
 	if err != nil {

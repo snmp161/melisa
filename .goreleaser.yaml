@@ -3,7 +3,7 @@ project_name: melisa
 
 before:
   hooks:
-    - go mod tidy
+    - go mod verify
 
 builds:
   - env:
@@ -19,7 +19,7 @@ builds:
       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
 
 archives:
-  - format: tar.gz
+  - formats: [tar.gz]
     files:
       - LICENSE
       - NOTICE

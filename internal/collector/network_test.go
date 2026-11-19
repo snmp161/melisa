@@ -615,18 +615,24 @@ func TestEnrichNICDetails(t *testing.T) {
 
 	// Create /sys/class/net/eth0/ structure
 	ethDir := filepath.Join(sysDir, "class", "net", "eth0")
-	os.MkdirAll(filepath.Join(ethDir, "queues", "rx-0"), 0755)
-	os.MkdirAll(filepath.Join(ethDir, "queues", "rx-1"), 0755)
-	os.MkdirAll(filepath.Join(ethDir, "queues", "tx-0"), 0755)
-	os.MkdirAll(filepath.Join(ethDir, "queues", "tx-1"), 0755)
-	os.MkdirAll(filepath.Join(ethDir, "queues", "tx-2"), 0755)
+	for _, queue := range []string{"rx-0", "rx-1", "tx-0", "tx-1", "tx-2"} {
+		if err := os.MkdirAll(filepath.Join(ethDir, "queues", queue), 0755); err != nil {
+			t.Fatal(err)
+		}
+	}
 
 	// Speed
-	os.WriteFile(filepath.Join(ethDir, "speed"), []byte("10000\n"), 0644)
+	if err := os.WriteFile(filepath.Join(ethDir, "speed"), []byte("10000\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
 	// MTU
-	os.WriteFile(filepath.Join(ethDir, "mtu"), []byte("9001\n"), 0644)
+	if err := os.WriteFile(filepath.Join(ethDir, "mtu"), []byte("9001\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
 	// RPS cpus (enabled — non-zero mask)
-	os.WriteFile(filepath.Join(ethDir, "queues", "rx-0", "rps_cpus"), []byte("f\n"), 0644)
+	if err := os.WriteFile(filepath.Join(ethDir, "queues", "rx-0", "rps_cpus"), []byte("f\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	// Mock ethtool
 	mock := &mockCommandRunner{

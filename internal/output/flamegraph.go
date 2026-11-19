@@ -34,7 +34,7 @@ func GenerateFlameGraphSVG(stacks []model.StackTrace, title string) string {
 	fontSize := 12
 
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf(`<?xml version="1.0" standalone="no"?>
+	fmt.Fprintf(&sb, `<?xml version="1.0" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg version="1.1" width="%d" height="%d" xmlns="http://www.w3.org/2000/svg">
 <style>
@@ -42,7 +42,7 @@ func GenerateFlameGraphSVG(stacks []model.StackTrace, title string) string {
   rect:hover { stroke: black; stroke-width: 1; }
 </style>
 <text x="10" y="20" class="func" style="font-size:14px; font-weight:bold">%s — %d samples</text>
-`, width, height, fontSize, title, totalSamples))
+`, width, height, fontSize, title, totalSamples)
 
 	// Build a simplified flame chart
 	// Group frames by depth
@@ -97,13 +97,11 @@ func GenerateFlameGraphSVG(stacks []model.StackTrace, title string) string {
 			}
 		}
 
-		sb.WriteString(fmt.Sprintf(
-			`<rect x="%.1f" y="%.1f" width="%.1f" height="%d" fill="%s" rx="1"/>`,
-			f.xStart, y, f.xWidth, frameHeight-1, color))
+		fmt.Fprintf(&sb, `<rect x="%.1f" y="%.1f" width="%.1f" height="%d" fill="%s" rx="1"/>`,
+			f.xStart, y, f.xWidth, frameHeight-1, color)
 		if label != "" {
-			sb.WriteString(fmt.Sprintf(
-				`<text x="%.1f" y="%.1f" class="func">%s</text>`,
-				f.xStart+2, y+float64(frameHeight-3), html.EscapeString(label)))
+			fmt.Fprintf(&sb, `<text x="%.1f" y="%.1f" class="func">%s</text>`,
+				f.xStart+2, y+float64(frameHeight-3), html.EscapeString(label))
 		}
 		sb.WriteString("\n")
 	}
@@ -116,7 +114,7 @@ func GenerateFlameGraphSVG(stacks []model.StackTrace, title string) string {
 func GenerateFlameGraphFromFolded(stacks []model.StackTrace) string {
 	var sb strings.Builder
 	for _, s := range stacks {
-		sb.WriteString(fmt.Sprintf("%s %d\n", s.Stack, s.Count))
+		fmt.Fprintf(&sb, "%s %d\n", s.Stack, s.Count)
 	}
 	return sb.String()
 }

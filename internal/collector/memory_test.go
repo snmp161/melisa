@@ -418,8 +418,12 @@ func TestGPUCollectorWithNvidiaGPU(t *testing.T) {
 
 	// Create fake NIC with numa_node
 	nicDir := filepath.Join(sysDir, "class", "net", "eth0", "device")
-	os.MkdirAll(nicDir, 0755)
-	os.WriteFile(filepath.Join(nicDir, "numa_node"), []byte("0\n"), 0644)
+	if err := os.MkdirAll(nicDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(nicDir, "numa_node"), []byte("0\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	mock := &mockCommandRunner{
 		outputs: map[string][]byte{
@@ -430,8 +434,12 @@ func TestGPUCollectorWithNvidiaGPU(t *testing.T) {
 
 	// Create fake GPU numa_node in sysfs
 	gpuPCIDir := filepath.Join(sysDir, "bus", "pci", "devices", "00000000:07:00.0")
-	os.MkdirAll(gpuPCIDir, 0755)
-	os.WriteFile(filepath.Join(gpuPCIDir, "numa_node"), []byte("1\n"), 0644)
+	if err := os.MkdirAll(gpuPCIDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(gpuPCIDir, "numa_node"), []byte("1\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	c := &GPUCollector{sysRoot: sysDir, cmdRun: mock}
 	result, err := c.Collect(context.Background(), CollectConfig{})
@@ -486,13 +494,11 @@ func TestNUMAMissRatio(t *testing.T) {
 	c := NewMemoryCollector("../../testdata/proc", "../../testdata/sys")
 	nodes := c.parseNUMAStats()
 	// testdata may not have NUMA nodes — just verify no panic
-	if nodes != nil {
-		for _, n := range nodes {
-			if n.NumaHit+n.NumaMiss > 0 {
-				expectedRatio := float64(n.NumaMiss) / float64(n.NumaHit+n.NumaMiss) * 100
-				if math.Abs(n.MissRatio-expectedRatio) > 0.01 {
-					t.Errorf("node%d: MissRatio=%.2f, want %.2f", n.Node, n.MissRatio, expectedRatio)
-				}
+	for _, n := range nodes {
+		if n.NumaHit+n.NumaMiss > 0 {
+			expectedRatio := float64(n.NumaMiss) / float64(n.NumaHit+n.NumaMiss) * 100
+			if math.Abs(n.MissRatio-expectedRatio) > 0.01 {
+				t.Errorf("node%d: MissRatio=%.2f, want %.2f", n.Node, n.MissRatio, expectedRatio)
 			}
 		}
 	}

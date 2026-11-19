@@ -96,7 +96,7 @@ func (c *MemoryCollector) parseMeminfo(data *model.MemoryData) {
 	if err != nil {
 		return
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
@@ -143,7 +143,7 @@ func (c *MemoryCollector) parseVmstatFull(data *model.MemoryData) map[string]int
 	if err != nil {
 		return nil
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	r := &model.ReclaimStats{}
 	raw := make(map[string]int64)
@@ -201,7 +201,7 @@ func (c *MemoryCollector) parseVmstatRaw() map[string]int64 {
 	if err != nil {
 		return nil
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	m := make(map[string]int64)
 	scanner := bufio.NewScanner(f)
@@ -239,7 +239,7 @@ func (c *MemoryCollector) parsePSI(data *model.MemoryData) {
 	if err != nil {
 		return // PSI not available (kernel < 4.20)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
@@ -307,7 +307,7 @@ func (c *MemoryCollector) parseBuddyinfo() map[string][]int {
 	if err != nil {
 		return nil
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	result := make(map[string][]int)
 	scanner := bufio.NewScanner(f)
@@ -374,7 +374,7 @@ func (c *MemoryCollector) parseNUMAStats() []model.NUMANode {
 					node.MemFreeBytes = valBytes
 				}
 			}
-			f.Close()
+			_ = f.Close()
 		}
 
 		// Parse numastat
@@ -395,7 +395,7 @@ func (c *MemoryCollector) parseNUMAStats() []model.NUMANode {
 					node.NumaForeign = val
 				}
 			}
-			f.Close()
+			_ = f.Close()
 		}
 
 		// Compute miss ratio

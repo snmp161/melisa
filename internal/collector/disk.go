@@ -123,7 +123,7 @@ func (c *DiskCollector) parseIOPSI(data *model.DiskData) {
 	if err != nil {
 		return
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
@@ -153,7 +153,7 @@ func (c *DiskCollector) readDiskStats() map[string]diskStatsRaw {
 	if err != nil {
 		return nil
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	result := make(map[string]diskStatsRaw)
 	scanner := bufio.NewScanner(f)

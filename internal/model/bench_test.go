@@ -67,8 +67,8 @@ func BenchmarkDetectAnomalies(b *testing.B) {
 					Category:  "network",
 					Data: &NetworkData{
 						TCP: &TCPStats{
-							RetransRate:   20,
-							TimeWaitCount: 8000,
+							RetransRate:    20,
+							TimeWaitCount:  8000,
 							CloseWaitCount: 5,
 						},
 						Interfaces: []NetworkInterface{
@@ -77,10 +77,10 @@ func BenchmarkDetectAnomalies(b *testing.B) {
 						Conntrack: &ConntrackStats{Max: 65536, UsagePct: 75},
 						Softnet:   &SoftnetData{DropRate: 5, SqueezeRate: 3},
 						TCPExt: &TCPExtendedStats{
-							ListenOverflowRate:     2,
-							TCPAbortMemRate:        0.5,
-							TCPRcvQDropRate:        3,
-							TCPZeroWindowDropRate:  1,
+							ListenOverflowRate:    2,
+							TCPAbortMemRate:       0.5,
+							TCPRcvQDropRate:       3,
+							TCPZeroWindowDropRate: 1,
 						},
 						UDP: &UDPStats{RcvbufErrRate: 10},
 					},

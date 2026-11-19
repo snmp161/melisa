@@ -200,7 +200,7 @@ func TestProfileQuickRestrictsCollectors(t *testing.T) {
 	allCollectors := []collector.Collector{
 		&mockCollector{name: "cpu_utilization", category: "cpu", tier: 1, data: &model.CPUData{}},
 		&mockCollector{name: "biolatency", category: "disk", tier: 2, data: &model.CPUData{}},
-		&mockCollector{name: "runqlat", category: "cpu", tier: 2, data: &model.CPUData{}},       // not in quick profile
+		&mockCollector{name: "runqlat", category: "cpu", tier: 2, data: &model.CPUData{}},           // not in quick profile
 		&mockCollector{name: "offcputime", category: "stacktrace", tier: 2, data: &model.CPUData{}}, // not in quick profile
 	}
 
@@ -624,9 +624,9 @@ func TestTargetCgroupsPassedToCollectors(t *testing.T) {
 	mc := &mockCollector{name: "test", category: "cpu", tier: 1, data: &model.CPUData{}}
 
 	cfg := collector.CollectConfig{
-		Profile:        "standard",
-		TargetCgroups:  []string{"/sys/fs/cgroup/docker/abc123"},
-		Quiet:          true,
+		Profile:       "standard",
+		TargetCgroups: []string{"/sys/fs/cgroup/docker/abc123"},
+		Quiet:         true,
 	}
 
 	orch := New([]collector.Collector{mc}, cfg)

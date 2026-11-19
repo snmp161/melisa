@@ -11,14 +11,18 @@ import (
 
 // WriteJSON serializes the report as indented JSON.
 // If path is "-" or empty, writes to stdout.
-func WriteJSON(report *model.Report, path string) error {
+func WriteJSON(report *model.Report, path string) (err error) {
 	var w io.Writer = os.Stdout
 	if path != "" && path != "-" {
 		f, err := os.Create(path)
 		if err != nil {
 			return fmt.Errorf("create output file: %w", err)
 		}
-		defer f.Close()
+		defer func() {
+			if closeErr := f.Close(); closeErr != nil && err == nil {
+				err = fmt.Errorf("close output file: %w", closeErr)
+			}
+		}()
 		w = f
 	}
 

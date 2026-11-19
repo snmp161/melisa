@@ -223,7 +223,7 @@ func (c *NetworkCollector) parseNetDev() []model.NetworkInterface {
 	if err != nil {
 		return nil
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	var ifaces []model.NetworkInterface
 	scanner := bufio.NewScanner(f)
@@ -276,7 +276,7 @@ func (c *NetworkCollector) parseSNMP(data *model.NetworkData) {
 	if err != nil {
 		return
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	tcp := &model.TCPStats{}
 	scanner := bufio.NewScanner(f)
@@ -399,7 +399,7 @@ func (c *NetworkCollector) parseSoftnetStat() []model.SoftnetStats {
 	if err != nil {
 		return nil
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	var stats []model.SoftnetStats
 	scanner := bufio.NewScanner(f)
@@ -454,7 +454,7 @@ func (c *NetworkCollector) readNetRxSoftirqs() []int64 {
 	if err != nil {
 		return nil
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
@@ -482,7 +482,7 @@ func (c *NetworkCollector) parseNetstat(data *model.NetworkData) {
 	if err != nil {
 		return
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	scanner := bufio.NewScanner(f)
 	buf := make([]byte, 0, 64*1024) // netstat lines can be very long
@@ -738,7 +738,7 @@ func (c *NetworkCollector) parseSockstat(data *model.NetworkData) {
 	if err != nil {
 		return
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {

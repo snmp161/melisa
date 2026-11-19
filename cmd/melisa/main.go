@@ -112,7 +112,7 @@ Examples:
 				if err != nil {
 					return fmt.Errorf("create pprof file: %w", err)
 				}
-				defer f.Close()
+				defer func() { _ = f.Close() }()
 				if err := pprof.StartCPUProfile(f); err != nil {
 					return fmt.Errorf("start cpu profile: %w", err)
 				}

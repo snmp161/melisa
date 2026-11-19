@@ -165,7 +165,7 @@ func FormatCapabilities(caps map[string]bool) string {
 	var sb strings.Builder
 
 	level := CapabilityLevel(caps)
-	sb.WriteString(fmt.Sprintf("BPF Capability Level: Tier %d\n\n", level))
+	fmt.Fprintf(&sb, "BPF Capability Level: Tier %d\n\n", level)
 
 	groups := []struct {
 		title string
@@ -177,13 +177,13 @@ func FormatCapabilities(caps map[string]bool) string {
 	}
 
 	for _, g := range groups {
-		sb.WriteString(fmt.Sprintf("%s:\n", g.title))
+		fmt.Fprintf(&sb, "%s:\n", g.title)
 		for _, key := range g.keys {
 			status := "✗"
 			if caps[key] {
 				status = "✓"
 			}
-			sb.WriteString(fmt.Sprintf("  %s %s\n", status, key))
+			fmt.Fprintf(&sb, "  %s %s\n", status, key)
 		}
 		sb.WriteString("\n")
 	}

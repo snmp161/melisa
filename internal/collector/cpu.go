@@ -106,7 +106,7 @@ func (c *CPUCollector) readProcStat() (cpuTimes, map[int]cpuTimes, uint64) {
 	if err != nil {
 		return cpuTimes{}, nil, 0
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	var aggregate cpuTimes
 	perCPU := make(map[int]cpuTimes)
@@ -207,7 +207,7 @@ func (c *CPUCollector) parseCPUPSI(data *model.CPUData) {
 	if err != nil {
 		return // PSI not available (kernel < 4.20)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {

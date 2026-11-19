@@ -23,19 +23,19 @@ func GenerateAIPrompt(report *model.Report) *model.AIContext {
 	sb.WriteString("4. Investigation priorities ordered by impact\n\n")
 
 	// System context
-	sb.WriteString(fmt.Sprintf("System: %s, Kernel: %s, CPUs: %d, Memory: %dGB\n",
+	fmt.Fprintf(&sb, "System: %s, Kernel: %s, CPUs: %d, Memory: %dGB\n",
 		report.Metadata.Hostname,
 		report.Metadata.KernelVersion,
 		report.Metadata.CPUs,
-		report.Metadata.MemoryGB))
+		report.Metadata.MemoryGB)
 
 	if report.Metadata.ContainerEnv != "" && report.Metadata.ContainerEnv != "none" {
-		sb.WriteString(fmt.Sprintf("Container: %s (cgroup v%d)\n",
-			report.Metadata.ContainerEnv, report.Metadata.CgroupVersion))
+		fmt.Fprintf(&sb, "Container: %s (cgroup v%d)\n",
+			report.Metadata.ContainerEnv, report.Metadata.CgroupVersion)
 	}
 
-	sb.WriteString(fmt.Sprintf("Profile: %s, Duration: %s\n",
-		report.Metadata.Profile, report.Metadata.Duration))
+	fmt.Fprintf(&sb, "Profile: %s, Duration: %s\n",
+		report.Metadata.Profile, report.Metadata.Duration)
 
 	// PID/cgroup targeting context
 	hasPIDTarget := false
@@ -87,15 +87,15 @@ func GenerateAIPrompt(report *model.Report) *model.AIContext {
 	sb.WriteString("Phase 2: Tier 2/3 (BCC/eBPF) tools ran after baseline collection -- latency histograms, events, and stack traces.\n\n")
 
 	// Health score context
-	sb.WriteString(fmt.Sprintf("Health Score: %d/100\n", report.Summary.HealthScore))
+	fmt.Fprintf(&sb, "Health Score: %d/100\n", report.Summary.HealthScore)
 
 	// Anomalies
 	anomalies := report.Summary.Anomalies
 	if len(anomalies) > 0 {
-		sb.WriteString(fmt.Sprintf("\nDetected Anomalies (%d):\n", len(anomalies)))
+		fmt.Fprintf(&sb, "\nDetected Anomalies (%d):\n", len(anomalies))
 		for _, a := range anomalies {
-			sb.WriteString(fmt.Sprintf("  [%s] %s: %s (value=%s, threshold=%s)\n",
-				strings.ToUpper(a.Severity), a.Category, a.Message, a.Value, a.Threshold))
+			fmt.Fprintf(&sb, "  [%s] %s: %s (value=%s, threshold=%s)\n",
+				strings.ToUpper(a.Severity), a.Category, a.Message, a.Value, a.Threshold)
 		}
 	}
 
@@ -103,15 +103,15 @@ func GenerateAIPrompt(report *model.Report) *model.AIContext {
 	if len(report.Summary.Resources) > 0 {
 		sb.WriteString("\nUSE Metrics:\n")
 		for resource, use := range report.Summary.Resources {
-			sb.WriteString(fmt.Sprintf("  %s: util=%.1f%%, sat=%.1f%%, err=%d\n",
-				resource, use.Utilization, use.Saturation, use.Errors))
+			fmt.Fprintf(&sb, "  %s: util=%.1f%%, sat=%.1f%%, err=%d\n",
+				resource, use.Utilization, use.Saturation, use.Errors)
 		}
 	}
 
 	// Focus area hints
 	if len(report.Metadata.FocusAreas) > 0 {
-		sb.WriteString(fmt.Sprintf("\nFocus areas requested: %s\n",
-			strings.Join(report.Metadata.FocusAreas, ", ")))
+		fmt.Fprintf(&sb, "\nFocus areas requested: %s\n",
+			strings.Join(report.Metadata.FocusAreas, ", "))
 		sb.WriteString("Pay special attention to these subsystems.\n")
 	}
 
@@ -155,25 +155,23 @@ func GenerateAIPrompt(report *model.Report) *model.AIContext {
 	}
 
 	if tier2Total > 0 && tier2Empty*2 > tier2Total {
-		sb.WriteString(fmt.Sprintf(
-			"\nWARNING: %d of %d BCC tools returned empty results. "+
-				"This may indicate a signal-handling issue where BCC Python tools were killed "+
-				"before flushing output. Consider re-running with a longer timeout or checking "+
-				"tool compatibility. Interpret Tier 2 data with caution and rely primarily on "+
-				"Tier 1 (procfs) metrics for this analysis.\n",
-			tier2Empty, tier2Total))
+		fmt.Fprintf(&sb, "\nWARNING: %d of %d BCC tools returned empty results. "+
+			"This may indicate a signal-handling issue where BCC Python tools were killed "+
+			"before flushing output. Consider re-running with a longer timeout or checking "+
+			"tool compatibility. Interpret Tier 2 data with caution and rely primarily on "+
+			"Tier 1 (procfs) metrics for this analysis.\n",
+			tier2Empty, tier2Total)
 	}
 
 	// Observer effect note
 	if report.Metadata.ObserverOverhead != nil {
 		oh := report.Metadata.ObserverOverhead
-		sb.WriteString(fmt.Sprintf(
-			"\nOBSERVER EFFECT NOTE: melisa overhead during collection: "+
-				"CPU=%dms user + %dms system, Memory=%dMB RSS. "+
-				"Two-phase collection ensures Tier 1 baselines are unaffected by BCC tool overhead. "+
-				"melisa PIDs excluded from TopByCPU/TopByMem lists.\n",
+		fmt.Fprintf(&sb, "\nOBSERVER EFFECT NOTE: melisa overhead during collection: "+
+			"CPU=%dms user + %dms system, Memory=%dMB RSS. "+
+			"Two-phase collection ensures Tier 1 baselines are unaffected by BCC tool overhead. "+
+			"melisa PIDs excluded from TopByCPU/TopByMem lists.\n",
 			oh.CPUUserMs, oh.CPUSystemMs,
-			oh.MemoryRSSBytes/(1024*1024)))
+			oh.MemoryRSSBytes/(1024*1024))
 	}
 
 	sb.WriteString("\nProvide actionable, specific commands. ")

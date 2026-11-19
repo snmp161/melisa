@@ -197,22 +197,22 @@ type MemoryData struct {
 	// Page reclaim and compaction from /proc/vmstat
 	Reclaim *ReclaimStats `json:"reclaim,omitempty"`
 	// Additional vm.* sysctls
-	WatermarkScaleFactor  int `json:"watermark_scale_factor,omitempty"`
-	DirtyExpireCentisecs  int `json:"dirty_expire_centisecs,omitempty"`
+	WatermarkScaleFactor    int `json:"watermark_scale_factor,omitempty"`
+	DirtyExpireCentisecs    int `json:"dirty_expire_centisecs,omitempty"`
 	DirtyWritebackCentisecs int `json:"dirty_writeback_centisecs,omitempty"`
-	ZoneReclaimMode       int `json:"zone_reclaim_mode,omitempty"`
-	SchedNumaBalancing    int `json:"sched_numa_balancing,omitempty"`
+	ZoneReclaimMode         int `json:"zone_reclaim_mode,omitempty"`
+	SchedNumaBalancing      int `json:"sched_numa_balancing,omitempty"`
 }
 
 // ReclaimStats holds page reclaim, compaction, and THP counters from /proc/vmstat.
 type ReclaimStats struct {
 	// Page reclaim
-	PgscanDirect    int64 `json:"pgscan_direct"`
-	PgscanKswapd    int64 `json:"pgscan_kswapd"`
-	PgstealDirect   int64 `json:"pgsteal_direct"`
-	PgstealKswapd   int64 `json:"pgsteal_kswapd"`
-	AllocstallNormal int64 `json:"allocstall_normal"`
-	AllocstallDMA    int64 `json:"allocstall_dma,omitempty"`
+	PgscanDirect      int64 `json:"pgscan_direct"`
+	PgscanKswapd      int64 `json:"pgscan_kswapd"`
+	PgstealDirect     int64 `json:"pgsteal_direct"`
+	PgstealKswapd     int64 `json:"pgsteal_kswapd"`
+	AllocstallNormal  int64 `json:"allocstall_normal"`
+	AllocstallDMA     int64 `json:"allocstall_dma,omitempty"`
 	AllocstallMovable int64 `json:"allocstall_movable,omitempty"`
 	// Compaction
 	CompactStall   int64 `json:"compact_stall"`
@@ -229,15 +229,15 @@ type ReclaimStats struct {
 }
 
 type NUMANode struct {
-	Node          int      `json:"node"`
-	MemTotalBytes int64    `json:"mem_total_bytes"`
-	MemFreeBytes  int64    `json:"mem_free_bytes"`
-	NumaHit       int64    `json:"numa_hit"`
-	NumaMiss      int64    `json:"numa_miss"`
-	NumaForeign   int64    `json:"numa_foreign"`
-	MissRatio     float64  `json:"miss_ratio,omitempty"`
-	Distance      []int    `json:"distance,omitempty"`
-	CPUs          string   `json:"cpus,omitempty"`
+	Node          int     `json:"node"`
+	MemTotalBytes int64   `json:"mem_total_bytes"`
+	MemFreeBytes  int64   `json:"mem_free_bytes"`
+	NumaHit       int64   `json:"numa_hit"`
+	NumaMiss      int64   `json:"numa_miss"`
+	NumaForeign   int64   `json:"numa_foreign"`
+	MissRatio     float64 `json:"miss_ratio,omitempty"`
+	Distance      []int   `json:"distance,omitempty"`
+	CPUs          string  `json:"cpus,omitempty"`
 }
 
 // GPUDevice represents a detected GPU.
@@ -257,17 +257,17 @@ type GPUDevice struct {
 
 // PCIeTopology holds GPU and NIC NUMA affinity information.
 type PCIeTopology struct {
-	GPUs              []GPUDevice       `json:"gpus,omitempty"`
-	NICNUMAMap        map[string]int    `json:"nic_numa_map,omitempty"`
-	CrossNUMAPairs    []CrossNUMAPair   `json:"cross_numa_pairs,omitempty"`
+	GPUs           []GPUDevice     `json:"gpus,omitempty"`
+	NICNUMAMap     map[string]int  `json:"nic_numa_map,omitempty"`
+	CrossNUMAPairs []CrossNUMAPair `json:"cross_numa_pairs,omitempty"`
 }
 
 // CrossNUMAPair flags a GPU-NIC pair on different NUMA nodes.
 type CrossNUMAPair struct {
-	GPU      string `json:"gpu"`
-	GPUNode  int    `json:"gpu_numa_node"`
-	NIC      string `json:"nic"`
-	NICNode  int    `json:"nic_numa_node"`
+	GPU     string `json:"gpu"`
+	GPUNode int    `json:"gpu_numa_node"`
+	NIC     string `json:"nic"`
+	NICNode int    `json:"nic_numa_node"`
 }
 
 type DiskDevice struct {
@@ -354,10 +354,10 @@ type SoftnetStats struct {
 
 // ListenSocket represents a listening TCP socket with accept queue depth.
 type ListenSocket struct {
-	LocalAddr string `json:"local_addr"`
-	RecvQ     int    `json:"recv_q"`     // current accept queue depth
-	SendQ     int    `json:"send_q"`     // backlog (max queue size)
-	FillPct   float64 `json:"fill_pct"`  // recv_q / send_q * 100
+	LocalAddr string  `json:"local_addr"`
+	RecvQ     int     `json:"recv_q"`   // current accept queue depth
+	SendQ     int     `json:"send_q"`   // backlog (max queue size)
+	FillPct   float64 `json:"fill_pct"` // recv_q / send_q * 100
 }
 
 type TCPStats struct {
@@ -398,15 +398,15 @@ type NetworkData struct {
 
 // TCPExtendedStats holds counters from /proc/net/netstat TcpExt section.
 type TCPExtendedStats struct {
-	ListenOverflows      int64   `json:"listen_overflows,omitempty"`
-	ListenDrops          int64   `json:"listen_drops,omitempty"`
-	TCPAbortOnMemory     int64   `json:"tcp_abort_on_memory,omitempty"`
-	TCPOFOQueue          int64   `json:"tcp_ofo_queue,omitempty"`
-	PruneCalled          int64   `json:"prune_called,omitempty"`
-	TCPRcvQDrop          int64   `json:"tcp_rcvq_drop,omitempty"`
-	TCPZeroWindowDrop    int64   `json:"tcp_zero_window_drop,omitempty"`
-	TCPToZeroWindowAdv   int64   `json:"tcp_to_zero_window_adv,omitempty"`
-	TCPFromZeroWindowAdv int64   `json:"tcp_from_zero_window_adv,omitempty"`
+	ListenOverflows      int64 `json:"listen_overflows,omitempty"`
+	ListenDrops          int64 `json:"listen_drops,omitempty"`
+	TCPAbortOnMemory     int64 `json:"tcp_abort_on_memory,omitempty"`
+	TCPOFOQueue          int64 `json:"tcp_ofo_queue,omitempty"`
+	PruneCalled          int64 `json:"prune_called,omitempty"`
+	TCPRcvQDrop          int64 `json:"tcp_rcvq_drop,omitempty"`
+	TCPZeroWindowDrop    int64 `json:"tcp_zero_window_drop,omitempty"`
+	TCPToZeroWindowAdv   int64 `json:"tcp_to_zero_window_adv,omitempty"`
+	TCPFromZeroWindowAdv int64 `json:"tcp_from_zero_window_adv,omitempty"`
 	// Rate fields (computed from two-point delta / interval)
 	ListenOverflowRate    float64 `json:"listen_overflow_rate,omitempty"`
 	TCPAbortMemRate       float64 `json:"tcp_abort_mem_rate,omitempty"`
@@ -416,9 +416,9 @@ type TCPExtendedStats struct {
 
 // UDPStats holds UDP protocol counters from /proc/net/snmp.
 type UDPStats struct {
-	RcvbufErrors int64   `json:"rcvbuf_errors,omitempty"`
-	SndbufErrors int64   `json:"sndbuf_errors,omitempty"`
-	InErrors     int64   `json:"in_errors,omitempty"`
+	RcvbufErrors  int64   `json:"rcvbuf_errors,omitempty"`
+	SndbufErrors  int64   `json:"sndbuf_errors,omitempty"`
+	InErrors      int64   `json:"in_errors,omitempty"`
 	RcvbufErrRate float64 `json:"rcvbuf_err_rate,omitempty"`
 }
 

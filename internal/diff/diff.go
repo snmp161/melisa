@@ -41,7 +41,7 @@ func LoadReport(path string) (*model.Report, error) {
 	if err != nil {
 		return nil, fmt.Errorf("open %s: %w", path, err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	var report model.Report
 	if err := json.NewDecoder(f).Decode(&report); err != nil {
@@ -206,8 +206,8 @@ func FormatDiff(d *DiffReport) string {
 	var sb strings.Builder
 
 	sb.WriteString("=== Report Diff ===\n")
-	sb.WriteString(fmt.Sprintf("Baseline: %s\n", d.Baseline))
-	sb.WriteString(fmt.Sprintf("Current:  %s\n\n", d.Current))
+	fmt.Fprintf(&sb, "Baseline: %s\n", d.Baseline)
+	fmt.Fprintf(&sb, "Current:  %s\n\n", d.Current)
 
 	symbol := "→"
 	if d.HealthDelta > 0 {
@@ -215,17 +215,17 @@ func FormatDiff(d *DiffReport) string {
 	} else if d.HealthDelta < 0 {
 		symbol = "↓"
 	}
-	sb.WriteString(fmt.Sprintf("Health Score: %+d %s\n", d.HealthDelta, symbol))
-	sb.WriteString(fmt.Sprintf("Regressions: %d, Improvements: %d\n\n", d.Regressions, d.Improvements))
+	fmt.Fprintf(&sb, "Health Score: %+d %s\n", d.HealthDelta, symbol)
+	fmt.Fprintf(&sb, "Regressions: %d, Improvements: %d\n\n", d.Regressions, d.Improvements)
 
 	// Show regressions first
 	if d.Regressions > 0 {
 		sb.WriteString("⚠ Regressions:\n")
 		for _, c := range d.Changes {
 			if c.Direction == "regression" {
-				sb.WriteString(fmt.Sprintf("  [%s] %s/%s: %.2f → %.2f (%+.1f%%)\n",
+				fmt.Fprintf(&sb, "  [%s] %s/%s: %.2f → %.2f (%+.1f%%)\n",
 					strings.ToUpper(c.Significance), c.Category, c.Metric,
-					c.OldValue, c.NewValue, c.DeltaPct))
+					c.OldValue, c.NewValue, c.DeltaPct)
 			}
 		}
 		sb.WriteString("\n")
@@ -235,9 +235,9 @@ func FormatDiff(d *DiffReport) string {
 		sb.WriteString("✓ Improvements:\n")
 		for _, c := range d.Changes {
 			if c.Direction == "improvement" {
-				sb.WriteString(fmt.Sprintf("  [%s] %s/%s: %.2f → %.2f (%+.1f%%)\n",
+				fmt.Fprintf(&sb, "  [%s] %s/%s: %.2f → %.2f (%+.1f%%)\n",
 					strings.ToUpper(c.Significance), c.Category, c.Metric,
-					c.OldValue, c.NewValue, c.DeltaPct))
+					c.OldValue, c.NewValue, c.DeltaPct)
 			}
 		}
 	}

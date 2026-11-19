@@ -88,7 +88,7 @@ func (c *NativeTcpretransCollector) Collect(ctx context.Context, cfg CollectConf
 	if err != nil {
 		return nil, err
 	}
-	defer prog.Close()
+	defer func() { _ = prog.Close() }()
 
 	// Open perf buffer
 	eventsMap := prog.Collection.Maps["events"]
@@ -100,7 +100,7 @@ func (c *NativeTcpretransCollector) Collect(ctx context.Context, cfg CollectConf
 	if err != nil {
 		return nil, fmt.Errorf("creating perf reader: %w", err)
 	}
-	defer rd.Close()
+	defer func() { _ = rd.Close() }()
 
 	// Collect events
 	var events []model.Event
@@ -109,7 +109,7 @@ func (c *NativeTcpretransCollector) Collect(ctx context.Context, cfg CollectConf
 	// Read Loop
 	go func() {
 		<-ctx.Done()
-		rd.Close() // Break the read loop
+		_ = rd.Close() // Break the read loop
 	}()
 
 	for {

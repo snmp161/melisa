@@ -1,56 +1,75 @@
 name: Release
 
 on:
-    push:
-        branches:
-            - master
+  push:
+    tags:
+      - "v*"
 
 permissions:
-    contents: write
+  contents: read
 
 jobs:
-    release:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-            - name: Bump version and push tag
-              id: tag_version
-              uses: mathieudutour/github-tag-action@v6.1
-              with:
-                  github_token: ${{ secrets.GITHUB_TOKEN }}
-                  default_bump: patch
-                  release_branches: master
-                  dry_run: false
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.27.4"
 
-            - name: Fetch tags
-              run: git fetch --tags
+      - name: Install BPF toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang llvm linux-tools-generic libbpf-dev
+          # linux-tools-generic installs bpftool under a kernel-versioned path;
+          # expose it on PATH for `make generate`.
+          sudo ln -sf $(ls /usr/lib/linux-tools/*/bpftool | head -n1) /usr/local/bin/bpftool
 
-            - name: Set up Go
-              uses: actions/setup-go@v5
-              with:
-                  go-version: "1.27.4"
+      - name: Generate embedded BPF objects
+        run: make generate
 
-            - name: Install BPF toolchain
-              run: |
-                  sudo apt-get update
-                  sudo apt-get install -y clang llvm linux-tools-generic libbpf-dev
-                  # linux-tools-generic installs bpftool under a kernel-versioned path;
-                  # expose it on PATH for `make generate`.
-                  sudo ln -sf $(ls /usr/lib/linux-tools/*/bpftool | head -n1) /usr/local/bin/bpftool
+      - name: Verify dependencies
+        run: go mod verify
 
-            - name: Generate embedded BPF objects
-              run: make generate
+      - name: Run checks
+        run: make check
 
-            - name: Run GoReleaser
-              uses: goreleaser/goreleaser-action@v6
-              with:
-                  distribution: goreleaser
-                  version: "~> v2"
-                  args: release --clean
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              if: steps.tag_version.outputs.new_tag != ''
+      - name: Check GoReleaser configuration
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: "v2.20.2"
+          args: check
+
+      - name: Build release snapshot
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: "v2.20.2"
+          args: release --clean --snapshot
+
+      - name: Verify snapshot archives
+        run: |
+          set -euo pipefail
+          for archive in dist/*.tar.gz; do
+            contents="$(tar -tzf "$archive")"
+            grep -Eq '(^|/)LICENSE$' <<<"$contents"
+            grep -Eq '(^|/)NOTICE$' <<<"$contents"
+          done
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: "v2.20.2"
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

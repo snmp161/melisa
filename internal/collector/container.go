@@ -56,9 +56,10 @@ func (c *ContainerCollector) Collect(ctx context.Context, cfg CollectConfig) (*m
 	data.ContainerID = c.extractContainerID(data.CgroupPath)
 
 	// Cgroup metrics — read from target cgroup path if specified
-	if data.CgroupVersion == 2 {
+	switch data.CgroupVersion {
+	case 2:
 		c.collectCgroupV2MetricsFromPath(data, cfg.TargetCgroups)
-	} else if data.CgroupVersion == 1 {
+	case 1:
 		c.collectCgroupV1MetricsFromPath(data, cfg.TargetCgroups)
 	}
 
@@ -161,7 +162,7 @@ func (c *ContainerCollector) extractContainerID(cgroupPath string) string {
 
 func isHex(s string) bool {
 	for _, c := range s {
-		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+		if (c < '0' || c > '9') && (c < 'a' || c > 'f') && (c < 'A' || c > 'F') {
 			return false
 		}
 	}
