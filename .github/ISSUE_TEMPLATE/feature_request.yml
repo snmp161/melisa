@@ -1,0 +1,33 @@
+name: Feature request
+description: Propose a focused improvement to Melisa.
+title: "[Feature]: "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What diagnostic task is difficult or impossible today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe the expected CLI, MCP, report, or documentation behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Compatibility and host impact
+      description: Note any effect on the JSON schema, existing commands, read-only collection, privileges, or external dependencies.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Describe existing workarounds or alternative approaches.
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add examples, links, or a small sanitized report excerpt if useful.
