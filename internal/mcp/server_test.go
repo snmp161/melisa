@@ -66,10 +66,10 @@ func TestServerStdioProtocol(t *testing.T) {
 
 	stdinReader, stdinWriter := io.Pipe()
 	stdoutReader, stdoutWriter := io.Pipe()
-	defer stdinReader.Close()
-	defer stdinWriter.Close()
-	defer stdoutReader.Close()
-	defer stdoutWriter.Close()
+	defer func() { _ = stdinReader.Close() }()
+	defer func() { _ = stdinWriter.Close() }()
+	defer func() { _ = stdoutReader.Close() }()
+	defer func() { _ = stdoutWriter.Close() }()
 
 	srv := NewServer("stdio-test")
 	serveDone := make(chan error, 1)
@@ -225,8 +225,8 @@ func TestServerStdioProtocol(t *testing.T) {
 
 func TestServerStdioContextCancellation(t *testing.T) {
 	stdinReader, stdinWriter := io.Pipe()
-	defer stdinReader.Close()
-	defer stdinWriter.Close()
+	defer func() { _ = stdinReader.Close() }()
+	defer func() { _ = stdinWriter.Close() }()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	srv := NewServer("stdio-cancel-test")
