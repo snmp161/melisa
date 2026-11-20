@@ -66,14 +66,14 @@ func registerTools(s *server.MCPServer) {
 		mcp.WithDescription("Get detailed explanation, root causes, and actionable recommendations for a specific anomaly metric. Use list_anomalies to discover available IDs."),
 		mcp.WithString("anomaly_id",
 			mcp.Required(),
-			mcp.Description("Anomaly metric ID (e.g., 'cpu_utilization', 'disk_latency'). Use list_anomalies to see all."),
+			mcp.Description("Anomaly metric ID (e.g., 'cpu_utilization', 'disk_avg_latency'). Use list_anomalies to see all."),
 		),
 	)
 	s.AddTool(explainTool, handleExplainAnomaly)
 
 	// Tool: list_anomalies
 	listTool := mcp.NewTool("list_anomalies",
-		mcp.WithDescription("List all known anomaly metric IDs with brief descriptions. Use with explain_anomaly to get detailed recommendations."),
+		mcp.WithDescription("List active and legacy anomaly explanation IDs with brief descriptions. Use with explain_anomaly to get detailed recommendations."),
 	)
 	s.AddTool(listTool, handleListAnomalies)
 }

@@ -95,6 +95,10 @@ Each threshold has an evaluator function that extracts the metric from the repor
 |---|--------|---------|----------|--------|
 | 37 | dns_latency_p99 | > 50ms | > 200ms | BCC gethostlatency |
 
+### MCP Legacy Explanation IDs
+
+The MCP `list_anomalies` catalog includes the 37 active rules above plus three legacy explanation IDs retained for compatibility: `cpu_saturation`, `memory_saturation`, and `disk_latency`. The current detector does not emit these legacy IDs.
+
 ## Rate-Based Detection
 
 Rules marked `(rate)` use two-point sampling: the collector reads the counter before and after a 1-second interval, computes `delta / seconds`. This eliminates false positives from cumulative counters on long-uptime systems.

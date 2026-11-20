@@ -312,6 +312,33 @@ func TestAnomalyExplanations_CoversAllThresholds(t *testing.T) {
 	}
 }
 
+func TestAnomalyExplanations_ExactCatalog(t *testing.T) {
+	expected := make(map[string]struct{}, len(model.DefaultThresholds())+3)
+	for _, th := range model.DefaultThresholds() {
+		expected[th.Metric] = struct{}{}
+	}
+	for _, id := range []string{"cpu_saturation", "memory_saturation", "disk_latency"} {
+		if _, active := expected[id]; active {
+			t.Fatalf("legacy ID %q collides with an active threshold", id)
+		}
+		expected[id] = struct{}{}
+	}
+
+	if len(anomalyExplanations) != len(expected) {
+		t.Errorf("explanation count = %d, want %d", len(anomalyExplanations), len(expected))
+	}
+	for id := range expected {
+		if _, ok := anomalyExplanations[id]; !ok {
+			t.Errorf("expected explanation ID %q is missing", id)
+		}
+	}
+	for id := range anomalyExplanations {
+		if _, ok := expected[id]; !ok {
+			t.Errorf("unexpected explanation ID %q", id)
+		}
+	}
+}
+
 // --- Server creation ---
 
 func TestNewServer(t *testing.T) {

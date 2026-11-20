@@ -80,7 +80,7 @@ melisa includes a built-in [Model Context Protocol](https://modelcontextprotocol
 | `get_health` | Tier 1 collection with health score and anomalies |
 | `collect_metrics` | Collection using a selected `profile`, with optional `focus` and `pid` filters |
 | `explain_anomaly` | Possible causes and suggested actions for an anomaly ID |
-| `list_anomalies` | All 37 anomaly metric IDs with descriptions |
+| `list_anomalies` | Explanation IDs for 37 active rules and 3 legacy IDs retained for compatibility |
 
 ### Typical AI Workflow
 
