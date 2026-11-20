@@ -79,7 +79,7 @@ Each task should be implemented independently with focused verification, documen
 
 **Size:** S–M
 
-**Evidence:** the code and README describe 27 AI anti-patterns, while `doc/en/13-ai-integration.md` and `doc/ru/13-ai-integration.md` describe only 21. The quickstarts link to chapter 13 as an MCP setup guide, but that chapter currently documents prompt generation without actual MCP setup instructions.
+**Evidence:** the code and README describe 27 AI anti-patterns, while `docs/en/13-ai-integration.md` and `docs/ru/13-ai-integration.md` describe only 21. The quickstarts link to chapter 13 as an MCP setup guide, but that chapter currently documents prompt generation without actual MCP setup instructions.
 
 **Scope:**
 

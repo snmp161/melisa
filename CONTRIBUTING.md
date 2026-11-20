@@ -54,7 +54,7 @@ The following suites have significant host side effects and are not part of ordi
 
 ## Documentation
 
-For user-visible changes, update `README.md` and the affected English and Russian files under `doc/en/` and `doc/ru/` in the same change. Keep examples and command output consistent with the implementation.
+For user-visible changes, update `README.md` and the affected English and Russian files under `docs/en/` and `docs/ru/` in the same change. Keep examples and command output consistent with the implementation.
 
 ## Commits and pull requests
 
