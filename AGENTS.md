@@ -58,11 +58,11 @@
 For ordinary Go changes, run before delivery:
 
 ```bash
-make check
+GOTOOLCHAIN=go1.27.4 make check
 make build
 ```
 
-`make check` runs formatting, module tidiness, race-enabled tests, vet, pinned golangci-lint, and govulncheck. Use focused `go test` commands during iteration, but do not replace the final full check with them.
+Use Go 1.27.4 for the full check suite to match CI and include current standard-library security fixes. `make check` runs formatting, module tidiness, race-enabled tests, vet, pinned golangci-lint, and govulncheck. Use focused `go test` commands during iteration, but do not replace the final full check with them.
 
 For changes affecting collection or report generation, also exercise the real CLI on Linux when the environment permits:
 

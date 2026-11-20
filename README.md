@@ -303,13 +303,16 @@ The Docker-based integration script targets Ubuntu 24.04, Ubuntu 22.04, Debian 1
 
 ## Development
 
+Go 1.27.0 is the minimum language version. Use Go 1.27.4 for the full check suite to match CI and include the latest standard-library security fixes. Unit tests and ordinary builds do not require root, BCC, or access to the host procfs/sysfs.
+
 ```bash
-go test ./... -v          # unit tests
-go test ./... -race       # with race detector
-make lint                 # golangci-lint
-make build                # build the CLI for the host platform
-make test-validation      # Linux + root + stress-ng workload tests
+go test -v ./...                    # unit tests
+go test -race ./...                 # with race detector
+GOTOOLCHAIN=go1.27.4 make check     # formatting, tidy, tests, vet, lint, vulnerabilities
+make build                          # build the CLI for the host platform
 ```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow and privileged test requirements.
 
 ---
 
