@@ -71,6 +71,25 @@ Each task should be implemented independently with focused verification, documen
 
 **Done when:** Dependabot configuration is valid, future minor/patch updates use the intended groups, and major updates still arrive independently. If no eligible update is available during implementation, validate the configuration through GitHub and record that runtime grouping has not yet been observed.
 
+## Documentation hygiene
+
+### 9. Align AI and MCP documentation with the implementation
+
+**Priority:** 2
+
+**Size:** S–M
+
+**Evidence:** the code and README describe 27 AI anti-patterns, while `doc/en/13-ai-integration.md` and `doc/ru/13-ai-integration.md` describe only 21. The quickstarts link to chapter 13 as an MCP setup guide, but that chapter currently documents prompt generation without actual MCP setup instructions.
+
+**Scope:**
+
+- Update the English and Russian anti-pattern counts and lists to match `internal/output/ai_prompt.go` (P1–P27).
+- Add the actual MCP stdio configuration and all four tools to both versions of chapter 13, using `internal/mcp/server.go` as the source of truth.
+- Keep quickstart links pointed at the expanded chapter; do not add a new chapter or renumber existing documentation in this task.
+- Check related examples and descriptive counts against the implementation rather than copying stale values.
+
+**Done when:** EN/RU anti-pattern documentation matches the code, both MCP setup links lead to working configuration instructions, and all four MCP tools are documented consistently.
+
 ## Delivery notes
 
 - Keep changes scoped and use Conventional Commits.

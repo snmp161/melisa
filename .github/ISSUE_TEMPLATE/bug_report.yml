@@ -1,0 +1,64 @@
+name: Bug report
+description: Report a reproducible problem with the Melisa CLI, MCP server, installation, or report generation.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a problem. Do not include credentials or unredacted host, process, or network data. Use private vulnerability reporting for security issues.
+  - type: input
+    id: version
+    attributes:
+      label: Melisa version or commit
+      description: Paste the output of `melisa --version` or the commit SHA.
+      placeholder: "melisa version v0.1.0"
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include the OS/distribution, kernel, architecture, and installation method.
+      placeholder: |
+        OS: Ubuntu 24.04
+        Kernel: 6.8.x
+        Architecture: amd64
+        Installation: DEB package
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Include the exact command or MCP request and the minimal conditions needed to reproduce the problem.
+      placeholder: |
+        1. Run `melisa collect --profile quick --duration 2s --quiet -o -`.
+        2. Inspect the `network` collector result.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include errors and relevant partial output, but redact sensitive data.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Additional logs or report excerpts
+      description: Provide only the smallest relevant excerpt. Remove credentials and sensitive host information.
+      render: shell
+  - type: checkboxes
+    id: redaction
+    attributes:
+      label: Sensitive-data review
+      options:
+        - label: I reviewed the report and logs and removed credentials and unnecessary host details.
+          required: true
