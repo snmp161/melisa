@@ -23,7 +23,7 @@
 - `internal/installer/`: explicitly invoked BCC/tool installation.
 - `internal/observer/`: PID tracking and collection overhead measurement.
 - `testdata/`: captured procfs/sysfs trees and tool-output fixtures.
-- `tests/integration/`: manual Docker-based distribution tests.
+- `tests/integration/`: manual Docker-based distribution tests and release artifact verification.
 - `tests/validation/`: privileged workload and anomaly-detection validation.
 - `doc/en/` and `doc/ru/`: user and implementation documentation; keep them in sync.
 

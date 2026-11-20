@@ -81,3 +81,54 @@ jobs:
 
       - name: Build with embedded objects
         run: go build -v ./...
+
+  release-snapshot:
+    name: Release snapshot
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: "1.27.4"
+
+      - name: Install BPF toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang llvm linux-tools-generic libbpf-dev rpm
+          if ! command -v bpftool >/dev/null 2>&1; then
+            shopt -s nullglob
+            candidates=(/usr/lib/linux-tools/*/bpftool)
+            if [[ ${#candidates[@]} -eq 0 ]]; then
+              echo "bpftool not found after installing linux-tools-generic" >&2
+              exit 1
+            fi
+            sudo ln -sf "${candidates[0]}" /usr/local/bin/bpftool
+          fi
+
+      - name: Generate embedded BPF objects
+        run: make generate
+
+      - name: Verify dependencies
+        run: go mod verify
+
+      - name: Check GoReleaser configuration
+        uses: goreleaser/goreleaser-action@v7
+        with:
+          distribution: goreleaser
+          version: "v2.20.2"
+          args: check
+
+      - name: Build release snapshot
+        uses: goreleaser/goreleaser-action@v7
+        with:
+          distribution: goreleaser
+          version: "v2.20.2"
+          args: release --clean --snapshot
+
+      - name: Verify snapshot artifacts
+        run: bash tests/integration/verify_release_artifacts.sh
