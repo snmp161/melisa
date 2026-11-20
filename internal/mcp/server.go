@@ -2,6 +2,7 @@ package mcp
 
 import (
 	"context"
+	"io"
 	"os"
 
 	"github.com/mark3labs/mcp-go/mcp"
@@ -31,9 +32,12 @@ func NewServer(version string) *Server {
 
 // Start runs the server in stdio mode (blocking).
 func (s *Server) Start(ctx context.Context) error {
-	// NewStdioServer creates a wrapper that handles stdio communication
+	return s.serveStdio(ctx, os.Stdin, os.Stdout)
+}
+
+func (s *Server) serveStdio(ctx context.Context, stdin io.Reader, stdout io.Writer) error {
 	stdioServer := server.NewStdioServer(s.mcpServer)
-	return stdioServer.Listen(ctx, os.Stdin, os.Stdout)
+	return stdioServer.Listen(ctx, stdin, stdout)
 }
 
 // registerTools adds all supported tools to the server.
