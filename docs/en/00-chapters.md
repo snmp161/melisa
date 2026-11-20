@@ -7,7 +7,7 @@ Complete table of contents for the melisa documentation. 22 chapters covering Li
 | # | Chapter | What You'll Learn |
 |---|---------|-------------------|
 | — | [Quick Start](00-quickstart.md) | Install → run → read results → fix → verify. 2 minutes to first diagnosis |
-| 0 | [Introduction](index.md) | What melisa is, USE methodology, three-tier architecture, report structure |
+| 0 | [Introduction](00-introduction.md) | What melisa is, USE methodology, three-tier architecture, report structure |
 | 1 | [Linux Fundamentals](01-linux-fundamentals.md) | /proc, /sys, jiffies, CPU states, cgroups v1/v2, PSI, buddy allocator |
 
 ## Performance Analysis

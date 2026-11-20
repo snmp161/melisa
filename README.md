@@ -1,6 +1,6 @@
 # melisa
 
-![melisa terminal demo](doc/images/melisa_quick_profile.gif)
+![melisa terminal demo](docs/images/melisa_quick_profile.gif)
 
 melisa is a point-in-time Linux performance diagnostic tool. It collects data through 8 procfs/sysfs collectors, a registry of 67 BCC tools, and one native eBPF collector, then produces a JSON report with raw measurements, threshold-based anomalies, a heuristic health score, and suggested tuning actions. It works as a standalone CLI or as an MCP server for interactive analysis.
 
@@ -261,7 +261,7 @@ Chapters covering Linux performance concepts and melisa implementation:
 | **20** | **NUMA Optimization** — distance matrix, numactl, K8s topology manager |
 | **21** | **Production Tuning Checklist** — all sysctls + one-liner tuning script |
 
-All chapters available in English and Russian: [`doc/en/`](doc/en/) | [`doc/ru/`](doc/ru/)
+All chapters available in English and Russian: [`docs/en/`](docs/en/) | [`docs/ru/`](docs/ru/)
 
 ---
 

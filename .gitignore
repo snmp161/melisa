@@ -30,9 +30,6 @@ Thumbs.db
 # Go
 vendor/
 
-# Context docs (internal, force-added selectively)
-context/
-
 # AI tools
 .gemini/
 .claude/

@@ -25,8 +25,9 @@
 - `testdata/`: captured procfs/sysfs trees and tool-output fixtures.
 - `tests/integration/`: manual Docker-based distribution tests and release artifact verification.
 - `tests/validation/`: privileged workload and anomaly-detection validation.
-- `doc/en/` and `doc/ru/`: user and implementation documentation; keep them in sync.
+- `docs/en/` and `docs/ru/`: user and implementation documentation; keep them in sync.
 - `docs/BACKLOG.md`: remaining project-hygiene tasks and acceptance criteria.
+- `docs/development/`: native eBPF migration plans and AI prompt templates.
 
 ## Go and Dependencies
 

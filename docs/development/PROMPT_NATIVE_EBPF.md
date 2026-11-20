@@ -14,7 +14,7 @@ Repository: /path/to/melisa
 Port the BCC tool `<TOOL_NAME>` from Tier 2 (BCC Python) to Tier 3 (native eBPF via cilium/ebpf).
 
 ## Context
-- Read `context/NATIVE_EBPF_MIGRATION.md` for the full migration plan and patterns.
+- Read `docs/development/NATIVE_EBPF_MIGRATION.md` for the full migration plan and patterns.
 - Read `internal/collector/ebpf_tcpretrans.go` as the reference implementation (already working Tier 3 collector).
 - Read `internal/ebpf/loader.go` for ProgramSpec and loading mechanism.
 - Read `internal/ebpf/c/tcpretrans.bpf.c` for the BPF C code pattern.
