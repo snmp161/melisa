@@ -310,7 +310,7 @@ func (o *Orchestrator) buildMetadata(profile ProfileConfig) model.Metadata {
 	meta := model.Metadata{
 		Tool:          "melisa",
 		Version:       o.config.Version,
-		SchemaVersion: "1.1.0",
+		SchemaVersion: model.SchemaVersion,
 		Hostname:      hostname,
 		Timestamp:     time.Now().UTC().Format(time.RFC3339),
 		Duration:      profile.Duration.String(),

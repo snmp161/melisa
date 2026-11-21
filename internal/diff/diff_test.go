@@ -142,7 +142,7 @@ func TestFormatDiff(t *testing.T) {
 func TestLegacyMelisaiReportCompatibility(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "legacy.json")
 	data := []byte(`{
-		"metadata": {"tool": "melisai", "schema_version": "1.1.0", "timestamp": "before"},
+		"metadata": {"tool": "melisai", "schema_version": "` + model.SchemaVersion + `", "timestamp": "before"},
 		"categories": {},
 		"summary": {"health_score": 80, "anomalies": [], "resources": {}}
 	}`)

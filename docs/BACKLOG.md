@@ -1,27 +1,10 @@
 # Project Hygiene Backlog
 
-This file tracks the remaining hygiene tasks after completion of the first-priority developer workflow, MCP catalog, MCP stdio testing, and release snapshot work.
+This file tracks the remaining hygiene tasks after completion of the first-priority developer workflow, MCP catalog, MCP stdio testing, release snapshot work, report schema validation, and Dependabot update grouping.
 
 Each task should be implemented independently with focused verification, documentation updates where applicable, and a green full CI run before delivery.
 
 ## Priority 2
-
-### 5. Add a machine-readable JSON Schema for reports
-
-**Size:** M–L
-
-**Evidence:** schema version `1.1.0` is repeated in code and documentation, but no machine-readable schema exists. The schema badge in `README.md` currently has an empty target.
-
-**Scope:**
-
-- Centralize the report schema version instead of repeating string literals.
-- Add a versioned JSON Schema document for the public report format.
-- Validate report serialization and the captured example against the schema in automated tests.
-- Keep schema `1.1.0` backward-compatible; any incompatible change requires an explicit schema-version decision.
-- Point the README schema badge to the schema document.
-- Update affected English and Russian documentation together.
-
-**Done when:** report fixtures and generated output are validated in ordinary unprivileged tests, the schema version has one source of truth, and the published schema link works.
 
 ### 6. Refresh the integration-test distribution matrix
 
@@ -53,23 +36,6 @@ Each task should be implemented independently with focused verification, documen
 - Do not combine this mechanical supply-chain change with unrelated workflow refactoring.
 
 **Done when:** all workflows use reviewed full SHAs, Dependabot still recognizes the dependencies, and Test & Build, BPF smoke, and Release snapshot are green. Actual publishing remains tag-only.
-
-## Priority 3
-
-### 8. Group non-breaking Dependabot updates
-
-**Size:** S
-
-**Evidence:** `.github/dependabot.yml` currently creates an individual PR for every Go module and GitHub Actions update, which increases review noise.
-
-**Scope:**
-
-- Add separate groups for Go modules and GitHub Actions.
-- Group only minor and patch updates; keep major updates separate for individual compatibility review.
-- Preserve weekly schedules and existing PR limits.
-- Do not enable automatic merge as part of this task.
-
-**Done when:** Dependabot configuration is valid, future minor/patch updates use the intended groups, and major updates still arrive independently. If no eligible update is available during implementation, validate the configuration through GitHub and record that runtime grouping has not yet been observed.
 
 ## Documentation hygiene
 

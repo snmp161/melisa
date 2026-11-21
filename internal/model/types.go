@@ -1,9 +1,11 @@
 // Package model defines all data types for the melisa report output.
 // These types are serialized to JSON and consumed by AI/LLM for analysis.
-// Schema version: 1.1.0
 package model
 
 import "time"
+
+// SchemaVersion is the public JSON report schema version.
+const SchemaVersion = "1.1.0"
 
 // --- Report: top-level output ---
 

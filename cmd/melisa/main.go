@@ -32,7 +32,7 @@ func main() {
 	rootCmd := &cobra.Command{
 		Use:   "melisa",
 		Short: "Comprehensive Linux system performance analyzer",
-		Long: `melisa — single Go binary for Linux performance analysis.
+		Long: fmt.Sprintf(`melisa — single Go binary for Linux performance analysis.
 
 Collects metrics via BPF/eBPF tools (Brendan Gregg's ecosystem),
 procfs/sysfs, and standard utilities. Produces structured JSON
@@ -67,7 +67,7 @@ Key diagnostics:
 
 37 anomaly detection rules, health score (0-100), actionable recommendations.
 MCP server for interactive diagnostics from Claude Desktop / Cursor.
-Schema v1.1.0 with structured sub-objects for network, memory, GPU data.`,
+Schema v%s with structured sub-objects for network, memory, GPU data.`, model.SchemaVersion),
 		Version: version,
 	}
 

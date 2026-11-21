@@ -1,0 +1,707 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/snmp161/melisa/main/docs/schema/report-1.1.0.schema.json",
+  "title": "Melisa performance report",
+  "description": "Point-in-time Linux performance report produced by melisa. Schema version 1.1.0.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["metadata", "system", "categories", "summary"],
+  "properties": {
+    "metadata": { "$ref": "#/$defs/Metadata" },
+    "system": { "$ref": "#/$defs/SystemInfo" },
+    "categories": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": { "$ref": "#/$defs/Result" }
+      }
+    },
+    "summary": { "$ref": "#/$defs/Summary" },
+    "ai_context": { "$ref": "#/$defs/AIContext" }
+  },
+  "$defs": {
+    "Metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tool", "version", "schema_version", "hostname", "timestamp", "duration", "profile", "focus_areas", "kernel_version", "arch", "cpus", "memory_gb", "capabilities", "container_env", "cgroup_version"],
+      "properties": {
+        "tool": { "type": "string" },
+        "version": { "type": "string" },
+        "schema_version": { "const": "1.1.0" },
+        "hostname": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "duration": { "type": "string" },
+        "profile": { "type": "string" },
+        "focus_areas": { "type": ["array", "null"], "items": { "type": "string" } },
+        "kernel_version": { "type": "string" },
+        "arch": { "type": "string" },
+        "cpus": { "type": "integer" },
+        "memory_gb": { "type": "integer" },
+        "capabilities": { "type": ["array", "null"], "items": { "type": "string" } },
+        "container_env": { "type": "string" },
+        "cgroup_version": { "type": "integer" },
+        "observer_overhead": { "$ref": "#/$defs/ObserverOverhead" }
+      }
+    },
+    "ObserverOverhead": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["self_pid", "child_pids", "cpu_user_ms", "cpu_system_ms", "memory_rss_bytes", "disk_read_bytes", "disk_write_bytes", "context_switches"],
+      "properties": {
+        "self_pid": { "type": "integer" },
+        "child_pids": { "type": "array", "items": { "type": "integer" } },
+        "cpu_user_ms": { "type": "integer" },
+        "cpu_system_ms": { "type": "integer" },
+        "memory_rss_bytes": { "type": "integer" },
+        "disk_read_bytes": { "type": "integer" },
+        "disk_write_bytes": { "type": "integer" },
+        "context_switches": { "type": "integer" }
+      }
+    },
+    "SystemInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["os", "kernel", "uptime_seconds", "boot_params"],
+      "properties": {
+        "os": { "type": "string" },
+        "kernel": { "type": "string" },
+        "uptime_seconds": { "type": "integer" },
+        "boot_params": { "type": "string" },
+        "filesystems": { "type": "array", "items": { "$ref": "#/$defs/FilesystemInfo" } },
+        "block_devices": { "type": "array", "items": { "$ref": "#/$defs/BlockDevice" } },
+        "dmesg_errors": { "type": "array", "items": { "$ref": "#/$defs/LogEntry" } },
+        "journal_errors": { "type": "array", "items": { "$ref": "#/$defs/LogEntry" } }
+      }
+    },
+    "FilesystemInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mount", "device", "type", "size_gb", "used_pct"],
+      "properties": {
+        "mount": { "type": "string" },
+        "device": { "type": "string" },
+        "type": { "type": "string" },
+        "size_gb": { "type": "number" },
+        "used_pct": { "type": "number" }
+      }
+    },
+    "BlockDevice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "type", "size_gb"],
+      "properties": {
+        "name": { "type": "string" },
+        "type": { "type": "string" },
+        "size_gb": { "type": "number" },
+        "model": { "type": "string" }
+      }
+    },
+    "LogEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["time", "message"],
+      "properties": {
+        "time": { "type": "string" },
+        "level": { "type": "string" },
+        "unit": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    },
+    "Result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["collector", "category", "tier", "start_time", "end_time", "data"],
+      "properties": {
+        "collector": { "type": "string" },
+        "category": { "type": "string" },
+        "tier": { "type": "integer", "minimum": 1, "maximum": 3 },
+        "start_time": { "type": "string", "format": "date-time" },
+        "end_time": { "type": "string", "format": "date-time" },
+        "data": {
+          "anyOf": [
+            { "$ref": "#/$defs/CPUData" },
+            { "$ref": "#/$defs/MemoryData" },
+            { "$ref": "#/$defs/DiskData" },
+            { "$ref": "#/$defs/NetworkData" },
+            { "$ref": "#/$defs/ProcessData" },
+            { "$ref": "#/$defs/ContainerData" },
+            { "$ref": "#/$defs/SystemInfo" },
+            { "$ref": "#/$defs/PCIeTopology" },
+            { "$ref": "#/$defs/StackData" },
+            { "type": "null" }
+          ]
+        },
+        "histograms": { "type": "array", "items": { "$ref": "#/$defs/Histogram" } },
+        "events": { "type": "array", "items": { "$ref": "#/$defs/Event" } },
+        "stacks": { "type": "array", "items": { "$ref": "#/$defs/StackTrace" } },
+        "errors": { "type": "array", "items": { "type": "string" } },
+        "truncated": { "type": "boolean" }
+      }
+    },
+    "Histogram": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "unit", "buckets", "total_count", "p50", "p90", "p99", "p999", "max", "mean"],
+      "properties": {
+        "name": { "type": "string" },
+        "unit": { "type": "string" },
+        "buckets": { "type": "array", "items": { "$ref": "#/$defs/HistBucket" } },
+        "total_count": { "type": "integer" },
+        "p50": { "type": "number" },
+        "p90": { "type": "number" },
+        "p99": { "type": "number" },
+        "p999": { "type": "number" },
+        "max": { "type": "number" },
+        "mean": { "type": "number" }
+      }
+    },
+    "HistBucket": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["low", "high", "count"],
+      "properties": {
+        "low": { "type": "integer" },
+        "high": { "type": "integer" },
+        "count": { "type": "integer" }
+      }
+    },
+    "Event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["time", "details"],
+      "properties": {
+        "time": { "type": "string" },
+        "pid": { "type": "integer" },
+        "comm": { "type": "string" },
+        "details": { "type": "object", "additionalProperties": true }
+      }
+    },
+    "StackTrace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stack", "count", "type"],
+      "properties": {
+        "stack": { "type": "string" },
+        "count": { "type": "integer" },
+        "type": { "type": "string" }
+      }
+    },
+    "CPUData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["user_pct", "system_pct", "iowait_pct", "idle_pct", "steal_pct", "irq_pct", "softirq_pct", "context_switches_per_sec", "load_avg_1", "load_avg_5", "load_avg_15", "num_cpus"],
+      "properties": {
+        "user_pct": { "type": "number" },
+        "system_pct": { "type": "number" },
+        "iowait_pct": { "type": "number" },
+        "idle_pct": { "type": "number" },
+        "steal_pct": { "type": "number" },
+        "irq_pct": { "type": "number" },
+        "softirq_pct": { "type": "number" },
+        "context_switches_per_sec": { "type": "integer" },
+        "load_avg_1": { "type": "number" },
+        "load_avg_5": { "type": "number" },
+        "load_avg_15": { "type": "number" },
+        "num_cpus": { "type": "integer" },
+        "per_cpu": { "type": "array", "items": { "$ref": "#/$defs/PerCPU" } },
+        "sched_latency_ns": { "type": "integer" },
+        "sched_min_granularity_ns": { "type": "integer" },
+        "psi_some_10": { "type": "number" },
+        "psi_some_60": { "type": "number" }
+      }
+    },
+    "PerCPU": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cpu", "user_pct", "system_pct", "iowait_pct", "idle_pct"],
+      "properties": {
+        "cpu": { "type": "integer" },
+        "user_pct": { "type": "number" },
+        "system_pct": { "type": "number" },
+        "iowait_pct": { "type": "number" },
+        "idle_pct": { "type": "number" }
+      }
+    },
+    "MemoryData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total_bytes", "free_bytes", "available_bytes", "cached_bytes", "buffers_bytes", "swap_total_bytes", "swap_used_bytes", "dirty_bytes", "major_faults", "minor_faults", "swappiness", "overcommit_memory", "overcommit_ratio", "dirty_ratio", "dirty_background_ratio", "huge_pages_total", "huge_pages_free"],
+      "properties": {
+        "total_bytes": { "type": "integer" },
+        "free_bytes": { "type": "integer" },
+        "available_bytes": { "type": "integer" },
+        "cached_bytes": { "type": "integer" },
+        "buffers_bytes": { "type": "integer" },
+        "swap_total_bytes": { "type": "integer" },
+        "swap_used_bytes": { "type": "integer" },
+        "dirty_bytes": { "type": "integer" },
+        "major_faults": { "type": "integer" },
+        "minor_faults": { "type": "integer" },
+        "swappiness": { "type": "integer" },
+        "overcommit_memory": { "type": "integer" },
+        "overcommit_ratio": { "type": "integer" },
+        "dirty_ratio": { "type": "integer" },
+        "dirty_background_ratio": { "type": "integer" },
+        "huge_pages_total": { "type": "integer" },
+        "huge_pages_free": { "type": "integer" },
+        "psi_full_10": { "type": "number" },
+        "psi_full_60": { "type": "number" },
+        "psi_some_10": { "type": "number" },
+        "psi_some_60": { "type": "number" },
+        "thp_enabled": { "type": "string" },
+        "thp_defrag": { "type": "string" },
+        "min_free_kbytes": { "type": "integer" },
+        "numa_nodes": { "type": "array", "items": { "$ref": "#/$defs/NUMANode" } },
+        "buddy_info": {
+          "type": "object",
+          "additionalProperties": { "type": "array", "items": { "type": "integer" } }
+        },
+        "reclaim": { "$ref": "#/$defs/ReclaimStats" },
+        "watermark_scale_factor": { "type": "integer" },
+        "dirty_expire_centisecs": { "type": "integer" },
+        "dirty_writeback_centisecs": { "type": "integer" },
+        "zone_reclaim_mode": { "type": "integer" },
+        "sched_numa_balancing": { "type": "integer" }
+      }
+    },
+    "ReclaimStats": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pgscan_direct", "pgscan_kswapd", "pgsteal_direct", "pgsteal_kswapd", "allocstall_normal", "compact_stall", "compact_success", "compact_fail", "thp_fault_alloc", "thp_collapse_alloc", "thp_split_page"],
+      "properties": {
+        "pgscan_direct": { "type": "integer" },
+        "pgscan_kswapd": { "type": "integer" },
+        "pgsteal_direct": { "type": "integer" },
+        "pgsteal_kswapd": { "type": "integer" },
+        "allocstall_normal": { "type": "integer" },
+        "allocstall_dma": { "type": "integer" },
+        "allocstall_movable": { "type": "integer" },
+        "compact_stall": { "type": "integer" },
+        "compact_success": { "type": "integer" },
+        "compact_fail": { "type": "integer" },
+        "thp_fault_alloc": { "type": "integer" },
+        "thp_collapse_alloc": { "type": "integer" },
+        "thp_split_page": { "type": "integer" },
+        "direct_reclaim_rate": { "type": "number" },
+        "compact_stall_rate": { "type": "number" },
+        "thp_split_rate": { "type": "number" }
+      }
+    },
+    "NUMANode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node", "mem_total_bytes", "mem_free_bytes", "numa_hit", "numa_miss", "numa_foreign"],
+      "properties": {
+        "node": { "type": "integer" },
+        "mem_total_bytes": { "type": "integer" },
+        "mem_free_bytes": { "type": "integer" },
+        "numa_hit": { "type": "integer" },
+        "numa_miss": { "type": "integer" },
+        "numa_foreign": { "type": "integer" },
+        "miss_ratio": { "type": "number" },
+        "distance": { "type": "array", "items": { "type": "integer" } },
+        "cpus": { "type": "string" }
+      }
+    },
+    "GPUDevice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["index", "name", "pci_bus", "numa_node"],
+      "properties": {
+        "index": { "type": "integer" },
+        "name": { "type": "string" },
+        "driver": { "type": "string" },
+        "pci_bus": { "type": "string" },
+        "numa_node": { "type": "integer" },
+        "memory_total_mb": { "type": "integer" },
+        "memory_used_mb": { "type": "integer" },
+        "utilization_gpu_pct": { "type": "integer" },
+        "utilization_memory_pct": { "type": "integer" },
+        "temperature_c": { "type": "integer" },
+        "power_watts": { "type": "integer" }
+      }
+    },
+    "PCIeTopology": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "gpus": { "type": "array", "items": { "$ref": "#/$defs/GPUDevice" } },
+        "nic_numa_map": { "type": "object", "additionalProperties": { "type": "integer" } },
+        "cross_numa_pairs": { "type": "array", "items": { "$ref": "#/$defs/CrossNUMAPair" } }
+      }
+    },
+    "CrossNUMAPair": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gpu", "gpu_numa_node", "nic", "nic_numa_node"],
+      "properties": {
+        "gpu": { "type": "string" },
+        "gpu_numa_node": { "type": "integer" },
+        "nic": { "type": "string" },
+        "nic_numa_node": { "type": "integer" }
+      }
+    },
+    "DiskDevice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "read_ops", "write_ops", "read_bytes", "write_bytes", "io_in_progress", "io_time_ms", "weighted_io_ms", "rotational"],
+      "properties": {
+        "name": { "type": "string" },
+        "read_ops": { "type": "integer" },
+        "write_ops": { "type": "integer" },
+        "read_bytes": { "type": "integer" },
+        "write_bytes": { "type": "integer" },
+        "io_in_progress": { "type": "integer" },
+        "io_time_ms": { "type": "integer" },
+        "weighted_io_ms": { "type": "integer" },
+        "avg_latency_ms": { "type": "number" },
+        "scheduler": { "type": "string" },
+        "queue_depth": { "type": "integer" },
+        "rotational": { "type": "boolean" },
+        "read_ahead_kb": { "type": "integer" }
+      }
+    },
+    "DiskData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["devices", "total_ops", "read_ops", "write_ops"],
+      "properties": {
+        "devices": { "type": "array", "items": { "$ref": "#/$defs/DiskDevice" } },
+        "total_ops": { "type": "integer" },
+        "read_ops": { "type": "integer" },
+        "write_ops": { "type": "integer" },
+        "psi_some_10": { "type": "number" },
+        "psi_some_60": { "type": "number" }
+      }
+    },
+    "NetworkInterface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "rx_bytes", "tx_bytes", "rx_packets", "tx_packets", "rx_errors", "tx_errors", "rx_dropped", "tx_dropped"],
+      "properties": {
+        "name": { "type": "string" },
+        "rx_bytes": { "type": "integer" },
+        "tx_bytes": { "type": "integer" },
+        "rx_packets": { "type": "integer" },
+        "tx_packets": { "type": "integer" },
+        "rx_errors": { "type": "integer" },
+        "tx_errors": { "type": "integer" },
+        "rx_dropped": { "type": "integer" },
+        "tx_dropped": { "type": "integer" },
+        "errors_per_sec": { "type": "number" },
+        "driver": { "type": "string" },
+        "speed": { "type": "string" },
+        "rx_queues": { "type": "integer" },
+        "tx_queues": { "type": "integer" },
+        "ring_rx_current": { "type": "integer" },
+        "ring_rx_max": { "type": "integer" },
+        "rx_discards": { "type": "integer" },
+        "rx_buf_errors": { "type": "integer" },
+        "rps_enabled": { "type": "boolean" },
+        "xps_enabled": { "type": "boolean" },
+        "bond_slave": { "type": "boolean" },
+        "mtu": { "type": "integer" },
+        "tso_enabled": { "type": "boolean" },
+        "gro_enabled": { "type": "boolean" },
+        "gso_enabled": { "type": "boolean" },
+        "coalesce_rx_usecs": { "type": "integer" },
+        "coalesce_adaptive_rx": { "type": "boolean" }
+      }
+    },
+    "ConntrackStats": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["count", "max", "usage_pct"],
+      "properties": {
+        "count": { "type": "integer" },
+        "max": { "type": "integer" },
+        "usage_pct": { "type": "number" },
+        "drops": { "type": "integer" },
+        "insert_failed": { "type": "integer" },
+        "early_drop": { "type": "integer" }
+      }
+    },
+    "IRQDistribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cpu", "net_rx_delta"],
+      "properties": {
+        "cpu": { "type": "integer" },
+        "net_rx_delta": { "type": "integer" }
+      }
+    },
+    "SoftnetStats": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cpu", "processed", "dropped", "time_squeeze"],
+      "properties": {
+        "cpu": { "type": "integer" },
+        "processed": { "type": "integer" },
+        "dropped": { "type": "integer" },
+        "time_squeeze": { "type": "integer" }
+      }
+    },
+    "ListenSocket": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["local_addr", "recv_q", "send_q", "fill_pct"],
+      "properties": {
+        "local_addr": { "type": "string" },
+        "recv_q": { "type": "integer" },
+        "send_q": { "type": "integer" },
+        "fill_pct": { "type": "number" }
+      }
+    },
+    "TCPStats": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["curr_estab", "active_opens", "passive_opens", "retrans_segs", "retrans_rate_per_sec", "in_errs", "out_rsts", "time_wait_count", "close_wait_count"],
+      "properties": {
+        "curr_estab": { "type": "integer" },
+        "active_opens": { "type": "integer" },
+        "passive_opens": { "type": "integer" },
+        "retrans_segs": { "type": "integer" },
+        "retrans_rate_per_sec": { "type": "number" },
+        "in_errs": { "type": "integer" },
+        "out_rsts": { "type": "integer" },
+        "time_wait_count": { "type": "integer" },
+        "close_wait_count": { "type": "integer" }
+      }
+    },
+    "NetworkData": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "interfaces": { "type": "array", "items": { "$ref": "#/$defs/NetworkInterface" } },
+        "tcp": { "$ref": "#/$defs/TCPStats" },
+        "conntrack": { "$ref": "#/$defs/ConntrackStats" },
+        "tcp_ext": { "$ref": "#/$defs/TCPExtendedStats" },
+        "udp": { "$ref": "#/$defs/UDPStats" },
+        "softnet": { "$ref": "#/$defs/SoftnetData" },
+        "socket_mem": { "$ref": "#/$defs/SocketMemStats" },
+        "sysctls": { "$ref": "#/$defs/NetworkSysctls" },
+        "listen_sockets": { "type": "array", "items": { "$ref": "#/$defs/ListenSocket" } },
+        "recvq_saturated_count": { "type": "integer" },
+        "total_connections": { "type": "integer" },
+        "avg_latency_ms": { "type": "number" },
+        "p99_latency_ms": { "type": "number" },
+        "total_retransmits": { "type": "integer" },
+        "rate_per_min": { "type": "number" },
+        "unique_connections": { "type": "integer" },
+        "total_lookups": { "type": "integer" }
+      }
+    },
+    "TCPExtendedStats": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "listen_overflows": { "type": "integer" },
+        "listen_drops": { "type": "integer" },
+        "tcp_abort_on_memory": { "type": "integer" },
+        "tcp_ofo_queue": { "type": "integer" },
+        "prune_called": { "type": "integer" },
+        "tcp_rcvq_drop": { "type": "integer" },
+        "tcp_zero_window_drop": { "type": "integer" },
+        "tcp_to_zero_window_adv": { "type": "integer" },
+        "tcp_from_zero_window_adv": { "type": "integer" },
+        "listen_overflow_rate": { "type": "number" },
+        "tcp_abort_mem_rate": { "type": "number" },
+        "tcp_rcvq_drop_rate": { "type": "number" },
+        "tcp_zero_window_drop_rate": { "type": "number" }
+      }
+    },
+    "UDPStats": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "rcvbuf_errors": { "type": "integer" },
+        "sndbuf_errors": { "type": "integer" },
+        "in_errors": { "type": "integer" },
+        "rcvbuf_err_rate": { "type": "number" }
+      }
+    },
+    "SoftnetData": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "stats": { "type": "array", "items": { "$ref": "#/$defs/SoftnetStats" } },
+        "irq_distribution": { "type": "array", "items": { "$ref": "#/$defs/IRQDistribution" } },
+        "drop_rate": { "type": "number" },
+        "squeeze_rate": { "type": "number" }
+      }
+    },
+    "SocketMemStats": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tcp_inuse": { "type": "integer" },
+        "tcp_orphans": { "type": "integer" },
+        "tcp_mem_pages": { "type": "integer" },
+        "udp_inuse": { "type": "integer" }
+      }
+    },
+    "NetworkSysctls": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "congestion_control": { "type": "string" },
+        "tcp_rmem": { "type": "string" },
+        "tcp_wmem": { "type": "string" },
+        "tcp_mem": { "type": "string" },
+        "somaxconn": { "type": "integer" },
+        "tcp_max_syn_backlog": { "type": "integer" },
+        "tcp_tw_reuse": { "type": "integer" },
+        "tcp_max_tw_buckets": { "type": "integer" },
+        "tcp_keepalive_time": { "type": "integer" },
+        "tcp_keepalive_intvl": { "type": "integer" },
+        "tcp_keepalive_probes": { "type": "integer" },
+        "netdev_budget": { "type": "integer" },
+        "netdev_budget_usecs": { "type": "integer" },
+        "netdev_max_backlog": { "type": "integer" },
+        "rmem_max": { "type": "integer" },
+        "wmem_max": { "type": "integer" },
+        "ip_local_port_range": { "type": "string" },
+        "tcp_fin_timeout": { "type": "integer" },
+        "tcp_slow_start_after_idle": { "type": "integer" },
+        "tcp_fastopen": { "type": "integer" },
+        "tcp_syncookies": { "type": "integer" },
+        "tcp_notsent_lowat": { "type": "integer" },
+        "default_qdisc": { "type": "string" },
+        "tcp_mtu_probing": { "type": "integer" },
+        "arp_gc_thresh1": { "type": "integer" },
+        "arp_gc_thresh2": { "type": "integer" },
+        "arp_gc_thresh3": { "type": "integer" }
+      }
+    },
+    "ProcessInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pid", "comm"],
+      "properties": {
+        "pid": { "type": "integer" },
+        "comm": { "type": "string" },
+        "cpu_pct": { "type": "number" },
+        "mem_rss_bytes": { "type": "integer" },
+        "mem_pct": { "type": "number" },
+        "threads": { "type": "integer" },
+        "fds": { "type": "integer" },
+        "state": { "type": "string" }
+      }
+    },
+    "ProcessData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total_processes", "running", "sleeping", "zombie"],
+      "properties": {
+        "top_by_cpu": { "type": "array", "items": { "$ref": "#/$defs/ProcessInfo" } },
+        "top_by_mem": { "type": "array", "items": { "$ref": "#/$defs/ProcessInfo" } },
+        "total_processes": { "type": "integer" },
+        "running": { "type": "integer" },
+        "sleeping": { "type": "integer" },
+        "zombie": { "type": "integer" },
+        "excluded_pids": { "type": "array", "items": { "type": "integer" } }
+      }
+    },
+    "StackData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total_samples", "unique_stacks"],
+      "properties": {
+        "total_samples": { "type": "integer" },
+        "unique_stacks": { "type": "integer" },
+        "total_us": { "type": "integer" },
+        "flamegraph_svg": { "type": "string" }
+      }
+    },
+    "ContainerData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runtime", "cgroup_version"],
+      "properties": {
+        "runtime": { "type": "string" },
+        "cgroup_version": { "type": "integer" },
+        "cgroup_path": { "type": "string" },
+        "container_id": { "type": "string" },
+        "pod_name": { "type": "string" },
+        "namespace": { "type": "string" },
+        "cpu_quota": { "type": "integer" },
+        "cpu_period": { "type": "integer" },
+        "cpu_throttled_periods": { "type": "integer" },
+        "cpu_throttled_time_us": { "type": "integer" },
+        "memory_limit_bytes": { "type": "integer" },
+        "memory_usage_bytes": { "type": "integer" }
+      }
+    },
+    "Summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["health_score", "anomalies", "resources"],
+      "properties": {
+        "health_score": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "anomalies": { "type": ["array", "null"], "items": { "$ref": "#/$defs/Anomaly" } },
+        "hotspots": { "type": "array", "items": { "$ref": "#/$defs/Hotspot" } },
+        "resources": { "type": "object", "additionalProperties": { "$ref": "#/$defs/USEMetric" } },
+        "recommendations": { "type": "array", "items": { "$ref": "#/$defs/Recommendation" } }
+      }
+    },
+    "USEMetric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["utilization_pct", "saturation_pct", "errors"],
+      "properties": {
+        "utilization_pct": { "type": "number" },
+        "saturation_pct": { "type": "number" },
+        "errors": { "type": "integer" }
+      }
+    },
+    "Anomaly": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["severity", "category", "metric", "message", "value", "threshold"],
+      "properties": {
+        "severity": { "type": "string" },
+        "category": { "type": "string" },
+        "metric": { "type": "string" },
+        "message": { "type": "string" },
+        "value": { "type": "string" },
+        "threshold": { "type": "string" }
+      }
+    },
+    "Hotspot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["category", "description", "evidence"],
+      "properties": {
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "evidence": { "type": "string" }
+      }
+    },
+    "Recommendation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["priority", "category", "type", "title", "commands", "expected_impact", "evidence"],
+      "properties": {
+        "priority": { "type": "integer" },
+        "category": { "type": "string" },
+        "type": { "type": "string" },
+        "title": { "type": "string" },
+        "commands": { "type": "array", "items": { "type": "string" } },
+        "persistent": { "type": "array", "items": { "type": "string" } },
+        "expected_impact": { "type": "string" },
+        "evidence": { "type": "string" },
+        "source": { "type": "string" }
+      }
+    },
+    "AIContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["prompt", "methodology", "known_patterns"],
+      "properties": {
+        "prompt": { "type": "string" },
+        "methodology": { "type": "string" },
+        "known_patterns": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}
