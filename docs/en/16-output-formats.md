@@ -36,45 +36,14 @@ func WriteJSON(report *model.Report, path string) error {
 
 ### JSON Schema
 
-The complete JSON output follows this structure:
-```json
-{
-  "metadata": {
-    "tool": "melisa",
-    "version": "0.2.0",
-    "hostname": "...",
-    "timestamp": "...",
-    "profile": "standard",
-    "duration_seconds": 30
-  },
-  "system": {
-    "os": "Ubuntu 22.04",
-    "kernel": "5.15.0-91-generic",
-    "uptime_seconds": 1234567,
-    "boot_params": "...",
-    "filesystems": [...],
-    "block_devices": [...],
-    "dmesg_errors": [...]
-  },
-  "categories": {
-    "cpu": [{"collector": "cpu_utilization", "tier": 1, "data": {...}}],
-    "memory": [...],
-    "disk": [...],
-    "network": [...],
-    "process": [...],
-    "system": [...]
-  },
-  "summary": {
-    "health_score": 78,
-    "resources": {
-      "cpu": {"utilization": 45.2, "saturation": 12.3, "errors": 0},
-      "memory": {"utilization": 67.8, "saturation": 5.0, "errors": 123}
-    },
-    "anomalies": [...],
-    "recommendations": [...]
-  }
-}
-```
+The public report format is versioned as `1.1.0`. Its canonical machine-readable definition uses JSON Schema Draft 2020-12:
+
+- [Report JSON Schema 1.1.0](../schema/report-1.1.0.schema.json)
+- [Sanitized example report](../../testdata/report_1.1.0.json)
+
+The schema describes required fields, optional `omitempty` fields, nested collector data, and summary objects. `Result.data` contains one of the documented typed payloads or `null`; BCC results commonly use `null` because their measurements are stored in `histograms`, `events`, or `stacks`. Fields such as `metadata.focus_areas`, `metadata.capabilities`, and `summary.anomalies` can also be `null` when their Go slices are nil.
+
+Ordinary unprivileged tests compile the schema and validate both the captured example and output written by `WriteJSON`. Collection itself does not perform runtime schema validation, so schema validation remains optional for consumers and does not change partial-report behavior.
 
 ## Flame Graph Generator
 

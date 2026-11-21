@@ -13,7 +13,7 @@ func TestWriteJSONToFile(t *testing.T) {
 		Metadata: model.Metadata{
 			Tool:          "melisa",
 			Version:       "0.1.0",
-			SchemaVersion: "1.0.0",
+			SchemaVersion: model.SchemaVersion,
 			Hostname:      "test",
 			Profile:       "quick",
 		},
@@ -43,7 +43,7 @@ func TestWriteJSONToFile(t *testing.T) {
 	}
 
 	content := string(data)
-	if !containsStr(content, `"schema_version": "1.0.0"`) {
+	if !containsStr(content, `"schema_version": "`+model.SchemaVersion+`"`) {
 		t.Error("output missing schema_version")
 	}
 	if !containsStr(content, `"health_score": 100`) {

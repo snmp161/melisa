@@ -7,7 +7,7 @@ melisa is a point-in-time Linux performance diagnostic tool. It collects data th
 [![Go 1.27+](https://img.shields.io/badge/Go-1.27%2B-00ADD8?logo=go)](https://go.dev)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![BCC Coverage](https://img.shields.io/badge/BCC_tools-67%2F80-green)](https://github.com/iovisor/bcc)
-[![Schema](https://img.shields.io/badge/schema-v1.1.0-blue)]()
+[![Schema](https://img.shields.io/badge/schema-v1.1.0-blue)](docs/schema/report-1.1.0.schema.json)
 
 ```bash
 sudo melisa collect --profile quick -o report.json

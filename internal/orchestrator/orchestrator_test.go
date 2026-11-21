@@ -796,8 +796,8 @@ func TestReportMetadata(t *testing.T) {
 	if report.Metadata.Tool != "melisa" {
 		t.Errorf("tool = %q, want melisa", report.Metadata.Tool)
 	}
-	if report.Metadata.SchemaVersion != "1.1.0" {
-		t.Errorf("schema_version = %q, want 1.1.0", report.Metadata.SchemaVersion)
+	if report.Metadata.SchemaVersion != model.SchemaVersion {
+		t.Errorf("schema_version = %q, want %s", report.Metadata.SchemaVersion, model.SchemaVersion)
 	}
 	if report.Metadata.Profile != "deep" {
 		t.Errorf("profile = %q, want deep", report.Metadata.Profile)

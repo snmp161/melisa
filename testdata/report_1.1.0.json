@@ -1,0 +1,547 @@
+{
+  "metadata": {
+    "tool": "melisa",
+    "version": "0.4.1",
+    "schema_version": "1.1.0",
+    "hostname": "example-host",
+    "timestamp": "2024-01-15T10:30:00Z",
+    "duration": "30s",
+    "profile": "deep",
+    "focus_areas": ["cpu", "memory", "disk", "network"],
+    "kernel_version": "6.8.0-example",
+    "arch": "amd64",
+    "cpus": 8,
+    "memory_gb": 32,
+    "capabilities": ["procfs", "bcc"],
+    "container_env": "docker",
+    "cgroup_version": 2,
+    "observer_overhead": {
+      "self_pid": 1000,
+      "child_pids": [1001, 1002],
+      "cpu_user_ms": 120,
+      "cpu_system_ms": 30,
+      "memory_rss_bytes": 52428800,
+      "disk_read_bytes": 4096,
+      "disk_write_bytes": 8192,
+      "context_switches": 42
+    }
+  },
+  "system": {
+    "os": "Example Linux 24.04",
+    "kernel": "6.8.0-example",
+    "uptime_seconds": 2592000,
+    "boot_params": "BOOT_IMAGE=/vmlinuz root=/dev/sda1",
+    "filesystems": [
+      {
+        "mount": "/",
+        "device": "/dev/sda1",
+        "type": "ext4",
+        "size_gb": 100.0,
+        "used_pct": 55.5
+      }
+    ],
+    "block_devices": [
+      {
+        "name": "sda",
+        "type": "disk",
+        "size_gb": 100.0,
+        "model": "ExampleDisk"
+      }
+    ],
+    "dmesg_errors": [
+      {
+        "time": "2024-01-15T10:00:00Z",
+        "level": "warning",
+        "unit": "kernel",
+        "message": "Example diagnostic message"
+      }
+    ],
+    "journal_errors": []
+  },
+  "categories": {
+    "cpu": [
+      {
+        "collector": "cpu_utilization",
+        "category": "cpu",
+        "tier": 1,
+        "start_time": "2024-01-15T10:29:30Z",
+        "end_time": "2024-01-15T10:30:00Z",
+        "data": {
+          "user_pct": 45.2,
+          "system_pct": 12.1,
+          "iowait_pct": 3.5,
+          "idle_pct": 39.2,
+          "steal_pct": 0.0,
+          "irq_pct": 0.0,
+          "softirq_pct": 0.0,
+          "context_switches_per_sec": 15000,
+          "load_avg_1": 3.14,
+          "load_avg_5": 2.71,
+          "load_avg_15": 1.99,
+          "num_cpus": 8,
+          "per_cpu": [
+            {
+              "cpu": 0,
+              "user_pct": 44.0,
+              "system_pct": 11.0,
+              "iowait_pct": 3.0,
+              "idle_pct": 42.0
+            }
+          ],
+          "sched_latency_ns": 24000000,
+          "sched_min_granularity_ns": 3000000,
+          "psi_some_10": 1.2,
+          "psi_some_60": 0.8
+        }
+      },
+      {
+        "collector": "runqlat",
+        "category": "cpu",
+        "tier": 2,
+        "start_time": "2024-01-15T10:29:30Z",
+        "end_time": "2024-01-15T10:30:00Z",
+        "data": null,
+        "histograms": [
+          {
+            "name": "run_queue_latency",
+            "unit": "us",
+            "buckets": [
+              { "low": 0, "high": 1, "count": 100 },
+              { "low": 2, "high": 3, "count": 20 }
+            ],
+            "total_count": 120,
+            "p50": 0.5,
+            "p90": 2.0,
+            "p99": 3.0,
+            "p999": 3.0,
+            "max": 3.0,
+            "mean": 0.8
+          }
+        ],
+        "errors": ["partial histogram data"]
+      }
+    ],
+    "memory": [
+      {
+        "collector": "memory_info",
+        "category": "memory",
+        "tier": 1,
+        "start_time": "2024-01-15T10:29:30Z",
+        "end_time": "2024-01-15T10:30:00Z",
+        "data": {
+          "total_bytes": 34359738368,
+          "free_bytes": 8589934592,
+          "available_bytes": 17179869184,
+          "cached_bytes": 4294967296,
+          "buffers_bytes": 1073741824,
+          "swap_total_bytes": 8589934592,
+          "swap_used_bytes": 1073741824,
+          "dirty_bytes": 5242880,
+          "major_faults": 42,
+          "minor_faults": 1000000,
+          "swappiness": 60,
+          "overcommit_memory": 0,
+          "overcommit_ratio": 50,
+          "dirty_ratio": 20,
+          "dirty_background_ratio": 10,
+          "huge_pages_total": 0,
+          "huge_pages_free": 0,
+          "psi_full_10": 0.1,
+          "psi_full_60": 0.1,
+          "psi_some_10": 0.5,
+          "psi_some_60": 0.3,
+          "thp_enabled": "madvise",
+          "thp_defrag": "madvise",
+          "min_free_kbytes": 67584,
+          "numa_nodes": [
+            {
+              "node": 0,
+              "mem_total_bytes": 34359738368,
+              "mem_free_bytes": 8589934592,
+              "numa_hit": 100000,
+              "numa_miss": 100,
+              "numa_foreign": 10,
+              "miss_ratio": 0.001,
+              "distance": [10, 20],
+              "cpus": "0-7"
+            }
+          ],
+          "buddy_info": {
+            "node0-zone0": [1, 2, 3, 4]
+          },
+          "reclaim": {
+            "pgscan_direct": 100,
+            "pgscan_kswapd": 200,
+            "pgsteal_direct": 80,
+            "pgsteal_kswapd": 180,
+            "allocstall_normal": 1,
+            "allocstall_dma": 0,
+            "allocstall_movable": 1,
+            "compact_stall": 2,
+            "compact_success": 1,
+            "compact_fail": 1,
+            "thp_fault_alloc": 1000,
+            "thp_collapse_alloc": 20,
+            "thp_split_page": 5,
+            "direct_reclaim_rate": 0.5,
+            "compact_stall_rate": 0.1,
+            "thp_split_rate": 0.2
+          },
+          "watermark_scale_factor": 10,
+          "dirty_expire_centisecs": 3000,
+          "dirty_writeback_centisecs": 500,
+          "zone_reclaim_mode": 0,
+          "sched_numa_balancing": 1
+        }
+      }
+    ],
+    "disk": [
+      {
+        "collector": "disk_stats",
+        "category": "disk",
+        "tier": 1,
+        "start_time": "2024-01-15T10:29:30Z",
+        "end_time": "2024-01-15T10:30:00Z",
+        "data": {
+          "devices": [
+            {
+              "name": "sda",
+              "read_ops": 1000,
+              "write_ops": 2000,
+              "read_bytes": 1048576,
+              "write_bytes": 2097152,
+              "io_in_progress": 2,
+              "io_time_ms": 500,
+              "weighted_io_ms": 700,
+              "avg_latency_ms": 1.5,
+              "scheduler": "mq-deadline",
+              "queue_depth": 32,
+              "rotational": true,
+              "read_ahead_kb": 128
+            }
+          ],
+          "total_ops": 3000,
+          "read_ops": 1000,
+          "write_ops": 2000,
+          "psi_some_10": 2.0,
+          "psi_some_60": 1.0
+        }
+      },
+      {
+        "collector": "biosnoop",
+        "category": "disk",
+        "tier": 2,
+        "start_time": "2024-01-15T10:29:30Z",
+        "end_time": "2024-01-15T10:30:00Z",
+        "data": null,
+        "events": [
+          {
+            "time": "10:29:45",
+            "pid": 1234,
+            "comm": "example-process",
+            "details": {
+              "disk": "sda",
+              "latency_ms": 1.25,
+              "read": true,
+              "address": "192.0.2.10"
+            }
+          }
+        ],
+        "truncated": true
+      }
+    ],
+    "network": [
+      {
+        "collector": "network_stats",
+        "category": "network",
+        "tier": 1,
+        "start_time": "2024-01-15T10:29:30Z",
+        "end_time": "2024-01-15T10:30:00Z",
+        "data": {
+          "interfaces": [
+            {
+              "name": "eth0",
+              "rx_bytes": 1000000,
+              "tx_bytes": 2000000,
+              "rx_packets": 1000,
+              "tx_packets": 2000,
+              "rx_errors": 0,
+              "tx_errors": 0,
+              "rx_dropped": 0,
+              "tx_dropped": 0,
+              "errors_per_sec": 0.0,
+              "driver": "example_driver",
+              "speed": "1000Mb/s",
+              "rx_queues": 4,
+              "tx_queues": 4,
+              "ring_rx_current": 256,
+              "ring_rx_max": 1024,
+              "rx_discards": 0,
+              "rx_buf_errors": 0,
+              "rps_enabled": true,
+              "xps_enabled": false,
+              "bond_slave": false,
+              "mtu": 1500,
+              "tso_enabled": true,
+              "gro_enabled": true,
+              "gso_enabled": true,
+              "coalesce_rx_usecs": 50,
+              "coalesce_adaptive_rx": true
+            }
+          ],
+          "tcp": {
+            "curr_estab": 20,
+            "active_opens": 100,
+            "passive_opens": 200,
+            "retrans_segs": 5,
+            "retrans_rate_per_sec": 0.1,
+            "in_errs": 0,
+            "out_rsts": 2,
+            "time_wait_count": 10,
+            "close_wait_count": 1
+          },
+          "conntrack": {
+            "count": 100,
+            "max": 262144,
+            "usage_pct": 0.04,
+            "drops": 0,
+            "insert_failed": 0,
+            "early_drop": 0
+          },
+          "tcp_ext": {
+            "listen_overflows": 1,
+            "listen_drops": 1,
+            "tcp_abort_on_memory": 0,
+            "tcp_ofo_queue": 2,
+            "prune_called": 0,
+            "tcp_rcvq_drop": 0,
+            "tcp_zero_window_drop": 1,
+            "tcp_to_zero_window_adv": 3,
+            "tcp_from_zero_window_adv": 4,
+            "listen_overflow_rate": 0.01,
+            "tcp_abort_mem_rate": 0.0,
+            "tcp_rcvq_drop_rate": 0.0,
+            "tcp_zero_window_drop_rate": 0.01
+          },
+          "udp": {
+            "rcvbuf_errors": 1,
+            "sndbuf_errors": 0,
+            "in_errors": 0,
+            "rcvbuf_err_rate": 0.01
+          },
+          "softnet": {
+            "stats": [
+              { "cpu": 0, "processed": 10000, "dropped": 0, "time_squeeze": 1 }
+            ],
+            "irq_distribution": [
+              { "cpu": 0, "net_rx_delta": 100 }
+            ],
+            "drop_rate": 0.0,
+            "squeeze_rate": 0.01
+          },
+          "socket_mem": {
+            "tcp_inuse": 20,
+            "tcp_orphans": 1,
+            "tcp_mem_pages": 10,
+            "udp_inuse": 5
+          },
+          "sysctls": {
+            "congestion_control": "cubic",
+            "tcp_rmem": "4096 131072 6291456",
+            "tcp_wmem": "4096 16384 4194304",
+            "tcp_mem": "100000 200000 300000",
+            "somaxconn": 4096,
+            "tcp_max_syn_backlog": 4096,
+            "tcp_tw_reuse": 1,
+            "tcp_max_tw_buckets": 262144,
+            "tcp_keepalive_time": 7200,
+            "tcp_keepalive_intvl": 75,
+            "tcp_keepalive_probes": 9,
+            "netdev_budget": 300,
+            "netdev_budget_usecs": 8000,
+            "netdev_max_backlog": 1000,
+            "rmem_max": 212992,
+            "wmem_max": 212992,
+            "ip_local_port_range": "32768 60999",
+            "tcp_fin_timeout": 60,
+            "tcp_slow_start_after_idle": 1,
+            "tcp_fastopen": 1,
+            "tcp_syncookies": 1,
+            "tcp_notsent_lowat": 4294967295,
+            "default_qdisc": "fq_codel",
+            "tcp_mtu_probing": 0,
+            "arp_gc_thresh1": 128,
+            "arp_gc_thresh2": 512,
+            "arp_gc_thresh3": 1024
+          },
+          "listen_sockets": [
+            { "local_addr": "127.0.0.1:8080", "recv_q": 1, "send_q": 128, "fill_pct": 0.78 }
+          ],
+          "recvq_saturated_count": 0,
+          "total_connections": 20,
+          "avg_latency_ms": 1.2,
+          "p99_latency_ms": 10.0,
+          "total_retransmits": 5,
+          "rate_per_min": 6.0,
+          "unique_connections": 15,
+          "total_lookups": 30
+        }
+      }
+    ],
+    "process": [
+      {
+        "collector": "process_info",
+        "category": "process",
+        "tier": 1,
+        "start_time": "2024-01-15T10:29:30Z",
+        "end_time": "2024-01-15T10:30:00Z",
+        "data": {
+          "top_by_cpu": [
+            {
+              "pid": 1234,
+              "comm": "example-process",
+              "cpu_pct": 12.5,
+              "mem_rss_bytes": 104857600,
+              "mem_pct": 0.3,
+              "threads": 4,
+              "fds": 32,
+              "state": "S"
+            }
+          ],
+          "top_by_mem": [],
+          "total_processes": 100,
+          "running": 2,
+          "sleeping": 98,
+          "zombie": 0,
+          "excluded_pids": [1000]
+        }
+      }
+    ],
+    "container": [
+      {
+        "collector": "container_info",
+        "category": "container",
+        "tier": 1,
+        "start_time": "2024-01-15T10:29:30Z",
+        "end_time": "2024-01-15T10:30:00Z",
+        "data": {
+          "runtime": "docker",
+          "cgroup_version": 2,
+          "cgroup_path": "/system.slice/docker-example.scope",
+          "container_id": "example",
+          "pod_name": "example-pod",
+          "namespace": "default",
+          "cpu_quota": 100000,
+          "cpu_period": 100000,
+          "cpu_throttled_periods": 2,
+          "cpu_throttled_time_us": 1000,
+          "memory_limit_bytes": 1073741824,
+          "memory_usage_bytes": 536870912
+        }
+      }
+    ],
+    "system": [
+      {
+        "collector": "system_info",
+        "category": "system",
+        "tier": 1,
+        "start_time": "2024-01-15T10:29:30Z",
+        "end_time": "2024-01-15T10:30:00Z",
+        "data": {
+          "os": "Example Linux 24.04",
+          "kernel": "6.8.0-example",
+          "uptime_seconds": 2592000,
+          "boot_params": "BOOT_IMAGE=/vmlinuz root=/dev/sda1"
+        }
+      },
+      {
+        "collector": "gpu_pcie",
+        "category": "system",
+        "tier": 1,
+        "start_time": "2024-01-15T10:29:30Z",
+        "end_time": "2024-01-15T10:30:00Z",
+        "data": {
+          "gpus": [
+            {
+              "index": 0,
+              "name": "Example GPU",
+              "driver": "example-driver",
+              "pci_bus": "0000:01:00.0",
+              "numa_node": 0,
+              "memory_total_mb": 8192,
+              "memory_used_mb": 1024,
+              "utilization_gpu_pct": 25,
+              "utilization_memory_pct": 12,
+              "temperature_c": 50,
+              "power_watts": 100
+            }
+          ],
+          "nic_numa_map": { "eth0": 0 },
+          "cross_numa_pairs": [
+            { "gpu": "0000:01:00.0", "gpu_numa_node": 0, "nic": "eth1", "nic_numa_node": 1 }
+          ]
+        }
+      }
+    ],
+    "stacktrace": [
+      {
+        "collector": "profile",
+        "category": "stacktrace",
+        "tier": 2,
+        "start_time": "2024-01-15T10:29:30Z",
+        "end_time": "2024-01-15T10:30:00Z",
+        "data": {
+          "total_samples": 2,
+          "unique_stacks": 1,
+          "total_us": 2000,
+          "flamegraph_svg": "<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>"
+        },
+        "stacks": [
+          { "stack": "main;work", "count": 2, "type": "on-cpu" }
+        ]
+      }
+    ]
+  },
+  "summary": {
+    "health_score": 85,
+    "anomalies": [
+      {
+        "severity": "warning",
+        "category": "cpu",
+        "metric": "cpu_utilization",
+        "message": "Example anomaly",
+        "value": "92.3%",
+        "threshold": "90%"
+      }
+    ],
+    "hotspots": [
+      {
+        "category": "disk",
+        "description": "Example hotspot",
+        "evidence": "avg_latency_ms=1.5"
+      }
+    ],
+    "resources": {
+      "cpu": { "utilization_pct": 57.3, "saturation_pct": 2.1, "errors": 0 },
+      "memory": { "utilization_pct": 50.0, "saturation_pct": 12.5, "errors": 0 }
+    },
+    "recommendations": [
+      {
+        "priority": 1,
+        "category": "network",
+        "type": "optimization",
+        "title": "Example recommendation",
+        "commands": ["sysctl -w net.ipv4.tcp_congestion_control=bbr"],
+        "persistent": ["Review the persistent configuration"],
+        "expected_impact": "Example impact",
+        "evidence": "tcp_congestion_control=cubic",
+        "source": "Example source"
+      }
+    ]
+  },
+  "ai_context": {
+    "prompt": "Analyze this sanitized example report.",
+    "methodology": "USE",
+    "known_patterns": ["P1", "P2"]
+  }
+}
