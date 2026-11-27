@@ -10,6 +10,7 @@ This file tracks the remaining Melisa tasks and their acceptance criteria.
 - Tasks 67–69 and the *Tooling decisions* section come from the evaluation of code-quality tools on the same date. Linter counts cited in tasks come from a trial run of additional linters in the pinned golangci-lint v2.15.0, without a configuration file and without deduplication by line.
 - Tasks 70–84 and the *Direction for the next months* section come from an operations review (SRE, DevOps, system administration) on the same date.
 - Tasks 85–93 come from a coverage review on the same date, which compared every procfs/sysfs path and external command the collectors read against a map of Linux system diagnostics.
+- Tasks 94–99 come from a kernel-compatibility review on 2026-11-28 against commit `b4638fb`. The review host runs kernel 7.0; behavior on other kernels is marked *inferred* where it was not observed.
 
 Tasks may be delivered in batches by stage (see *Direction for the next months*). Each task in a batch still needs focused verification, documentation updates where applicable, and a green full CI run before delivery.
 
@@ -27,8 +28,8 @@ Principles:
 
 | Stage | Goal | Tasks |
 |---|---|---|
-| 1, about one month | A trustworthy snapshot | 10, 11, 12, 13, 14, 29, 56, 70, 71, 72, 85; release v0.2.0 afterwards (task 47) |
-| 2, months 1–3 | Operator-grade Tier 1 and safe runs | 73, 74, 75, 76, 77, 78, 79, 80, 82, 86, 87, 88, 89, 91, and 15, 17, 18, 19, 20, 21 |
+| 1, about one month | A trustworthy snapshot | 10, 11, 12, 13, 14, 29, 56, 70, 71, 72, 85, 95, 96; release v0.2.0 afterwards (task 47) |
+| 2, months 1–3 | Operator-grade Tier 1 and safe runs | 73, 74, 75, 76, 77, 78, 79, 80, 82, 86, 87, 88, 89, 91, 94, 97, 98, 99, and 15, 17, 18, 19, 20, 21 |
 | 3, months 3–6 | Native core and integration | 30, 35, 83, 81, 84, 90, 92, 93, and 31, 32, 33 |
 
 - Engineering tasks (CI, refactoring, code quality) run alongside, preferably in the stage that touches the same code.
@@ -261,6 +262,54 @@ Only the final GoReleaser step needs write access.
 - the NUMA recommendation uses the real sysctl and depends on its value;
 - the path test passes;
 - a real run on the review host reports unavailable counters as unavailable.
+
+### 95. Distinguish sources unavailable on this kernel from zero values
+
+**Size:** M
+
+**Evidence:**
+
+- Optional sources fail silently:
+  - `readSysctlInt`, `readSysctlInt64`, and `readSysctlString` (`internal/collector/system.go:215`–`235`) return zero values when a file is missing or unreadable;
+  - the PSI parsers (`cpu.go:206`, `disk.go:122`, `memory.go:238`) return silently when `/proc/pressure/*` is missing;
+  - the affected fields use `omitempty`, so zeros disappear from the report.
+- Six of the 45 sysctl paths that the collectors read are missing on the review host (task 85).
+- RHEL and Rocky kernels disable PSI by default (it is enabled with the `psi=1` boot parameter). There, `/proc/pressure` is absent, the three PSI rules can never fire, and the report shows no sign of it (inferred; not run on RHEL).
+- A report therefore cannot distinguish "not supported on this kernel", "permission denied", and "measured zero".
+- Task 18 covers failures of a collector's primary source. This task covers optional sources and kernel features.
+
+**Scope:**
+
+- Make the procfs and sysfs helpers return a value plus an error kind: not present, permission denied, or malformed (shared with task 18).
+- Have each collector record every unavailable optional source in `errors`, together with the kind and the path.
+- Make anomaly evaluators skip unavailable data. List "not measured on this host" in the text summary (task 71).
+- Consider a per-source availability map in the report (see *Schema change candidates*).
+
+**Done when:**
+
+- tests cover the missing, permission-denied, and malformed cases for every optional source;
+- a real run on the review host lists its unavailable sources (scheduler tunables, conntrack counters);
+- no PSI rule reports "no pressure" when PSI is unavailable.
+
+### 96. Handle kernel and driver format variations in collectors
+
+**Size:** S–M
+
+**Evidence:**
+
+- **`softnet_stat`.** `internal/collector/network.go:406`–`421` assigns CPU numbers by line order. The kernel prints lines only for online CPUs, and newer kernels add columns, including the CPU number. On the review host each line has 15 columns, column 13 holds CPU 0–7, and the fixture has 13 columns. With offline CPUs, per-CPU softnet data is attributed to the wrong CPUs (inferred).
+- **Direct-reclaim stalls.** The review host's `/proc/vmstat` has `allocstall_dma`, `allocstall_dma32`, `allocstall_normal`, `allocstall_movable`, and `allocstall_device`. The parser knows three of them (`internal/collector/memory.go:171`–`176`), and the stall rate uses only `allocstall_normal` (`memory.go:214`).
+- **Scheduler tunables.** `sched_latency_ns` and `sched_min_granularity_ns` moved to debugfs in kernel 5.13, and kernels with EEVDF (6.6 and later) removed them.
+- **NIC discard counters.** These depend on the driver. The collector looks only for `rx_discards`, `rx_total_ring_discards`, and `rx_buf_errors` (`network.go:643`, `:650`). Other drivers name these counters differently, so the NIC discard rule stays silent for them.
+
+**Scope:**
+
+- Use the CPU column of `softnet_stat` when present. Fall back to line order only when all CPUs are online.
+- Sum every `allocstall_*` key by prefix, so that new zones are counted automatically.
+- Decide the fate of the scheduler tunables: read the debugfs equivalents as root, including `base_slice_ns` on EEVDF, or remove the fields (task 27 documents them).
+- Map NIC discard counters per driver, using the driver name that `ethtool -i` already provides, and record unknown drivers as unavailable (task 95).
+
+**Done when:** tests cover `softnet_stat` with 13 and 15 columns and with offline CPUs, three-zone and five-zone `allocstall`, and driver-specific `ethtool -S` fixtures. Fixtures from task 97 replace the synthetic ones where available.
 
 ## Priority 2
 
@@ -1113,6 +1162,69 @@ It loads no BPF programs and starts no tools.
 
 **Done when:** fixture tests cover every field and rule, and the documentation is updated.
 
+### 94. Probe kernel features instead of comparing versions
+
+**Size:** S–M
+
+**Evidence:**
+
+- The only kernel version check in the code is `internal/ebpf/btf.go:36`, which enables CO-RE only for kernel 5.8 and later. CO-RE needs kernel BTF, not 5.8: version 5.8 introduced the BPF ring buffer, and Melisa uses the perf buffer (`internal/collector/ebpf_tcpretrans.go`).
+- The check excludes kernels that have BTF but are older than 5.8, such as mainline 5.2–5.7 built with `CONFIG_DEBUG_INFO_BTF` and RHEL/Rocky 8 (4.18 with backported BTF). These fall back to BCC (inferred).
+- The check also cannot see features that a distribution disabled, or kernel lockdown.
+
+**Scope:**
+
+- Detect BTF with `btf.LoadKernelSpec`, and detect program types, map types, and helpers with the `features` package of the existing `cilium/ebpf` dependency.
+- Treat a failed load at collection time as the final word, and fall back to BCC (task 13).
+- Remove the version comparison.
+- Report detected features and the reasons for unavailability in `capabilities` (task 78).
+
+**Done when:** unit tests with injected probe results cover a kernel that has BTF but is older than 5.8, a kernel without BTF, and a failed load. The review host still reaches Tier 3 as root.
+
+### 97. Capture real procfs and sysfs fixtures from several kernels
+
+**Size:** M
+
+**Evidence:**
+
+- The fixtures are synthetic and from one generation. `testdata/proc/vmstat` has 19 lines with round values (`pgfault 1000000`), against 197 lines on the review host. Its `allocstall_*` keys are exactly the three the parser knows. No fixture records which kernel it represents.
+- The Docker integration matrix runs every distribution in containers on the host kernel, so it tests userland and BCC versions, never kernel differences.
+- CI runs on a single runner kernel, and unit tests do not read the real procfs.
+
+**Scope:**
+
+- Add a read-only capture script or make target. It copies the procfs and sysfs files that the collectors read, plus the kernel release, distribution, and architecture, into `testdata/kernels/<distro>-<kernel>-<arch>/`.
+- The script redacts host identifiers: hostnames, addresses, and DMI serial numbers.
+- The maintainer runs it on hosts they control, at least on:
+  - RHEL or Rocky 8 and 9;
+  - Ubuntu 22.04 and 24.04, with both GA and HWE kernels;
+  - Debian 12;
+  - a 6.12 LTS kernel;
+  - the current mainline kernel;
+  - one arm64 host.
+- Run every Tier 1 parser over every set in table-driven tests. Assert that sources expected on each kernel parse without errors, and keep golden outputs.
+
+**Done when:** fixture sets exist for the listed targets, CI runs the parsers over all of them, and adding a new set needs no code change.
+
+### 98. Test native eBPF programs on a kernel matrix
+
+**Size:** M–L (after tasks 13 and 30)
+
+**Evidence:**
+
+- The BPF smoke job only compiles objects. No test loads or attaches a native program on any kernel.
+- Tier 3 depends on several things that vary by kernel: the kprobe target, BTF features, and verifier behavior (task 13).
+- arm64 is untested (task 32).
+
+**Scope:**
+
+- Run load and attach tests in virtual machines with several kernels, for example with virtme-ng or Cilium's little-vm-helper.
+- Add a short event test, for example forcing a TCP retransmission with `tc netem` inside a network namespace.
+- Cover the oldest supported kernel (task 99), the LTS kernels 5.15, 6.1, 6.6, and 6.12, and the latest stable kernel. Start with amd64, and add arm64 once task 30 provides objects.
+- Run the matrix nightly, and on pull requests that change `internal/ebpf` or the BPF build.
+
+**Done when:** the matrix job is green, and a failure shows the kernel version and the verifier log.
+
 ## Priority 3
 
 ### 25. Harden the BCC subprocess environment and binary checks
@@ -1855,6 +1967,28 @@ Version and build metadata are covered by task 27.
 
 **Done when:** the guide and runbooks exist in both languages, the README examples no longer require root SSH, and the README roadmap matches the backlog.
 
+### 99. Document a kernel support policy
+
+**Priority:** 2
+
+**Size:** S
+
+**Evidence:**
+
+- README states minimum requirements per tier, for example "Tier 3: Root + kernel ≥ 5.8 with BTF".
+- It does not list tested kernels, distribution defaults that change behavior (PSI disabled on RHEL/Rocky, cgroup v1 by default on RHEL 8), or known per-kernel limitations.
+- The integration matrix lists distributions, not kernels.
+
+**Scope:**
+
+- Document the minimum kernel features for each tier, based on the feature detection in task 94.
+- List the tested kernels from tasks 97 and 98.
+- Describe distribution defaults and how to enable missing features, for example `psi=1`.
+- List known limitations per kernel.
+- Link the policy from the README requirements table, in EN and RU.
+
+**Done when:** the policy exists in both languages, README links to it, and it is updated whenever the kernel matrix changes.
+
 ## Schema change candidates
 
 These changes affect the public JSON report, so AGENTS.md requires explicit approval before any of them is made. Each one requires a schema version bump and updates to `docs/schema/`, `testdata/`, examples, and the EN/RU documentation.
@@ -1871,7 +2005,8 @@ These changes affect the public JSON report, so AGENTS.md requires explicit appr
   - per-workload cgroup data (task 76);
   - applied rule overrides (task 80);
   - reviewable recommendation fields (task 81);
-  - new fields from the coverage tasks 85–93.
+  - new fields from the coverage tasks 85–93;
+  - per-source availability (task 95).
 - Absolute event timestamps. BCC events carry local `HH:MM:SS`, and the native collector formats `15:04:05` without a date or time zone, so correlating events with logs and metrics is error-prone. An RFC 3339 UTC timestamp with milliseconds would fix this.
 
 ## Repository settings applied on 2026-11-27
